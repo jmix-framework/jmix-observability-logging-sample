@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      xmlns:c="http://jmix.io/schema/flowui/jpql-condition"
+      xmlns:calendar="http://jmix.io/schema/fullcalendar/ui"
+      title="msg://visitListView.title"
+      focusComponent="visitsDataGrid">
+    <data>
+        <collection id="visitsDc"
+                    class="io.jmix.petclinic.entity.visit.Visit">
+            <fetchPlan extends="_base">
+                <property name="pet" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="visitsDl">
+                <query>
+                    <![CDATA[select e from petclinic_Visit e]]>
+                </query>
+            </loader>
+        </collection>
+        <collection id="visitsCalendarDc"
+                    class="io.jmix.petclinic.entity.visit.Visit">
+            <fetchPlan extends="_base">
+                <property name="pet" fetchPlan="_base"/>
+            </fetchPlan>
+            <loader id="visitsCalendarDl">
+                <query>
+                    <![CDATA[select e from petclinic_Visit e where e.visitStart >= :visitStart and e.visitEnd < :visitEnd]]>
+                    <condition>
+                        <c:jpql>
+                            <c:where>e.type in :type</c:where>
+                        </c:jpql>
+                    </condition>
+                </query>
+            </loader>
+        </collection>
+    </data>
+    <facets>
+        <urlQueryParameters id="urlQueryParameters">
+            <genericFilter component="genericFilter"/>
+            <pagination component="pagination"/>
+            <calendar:calendarParameters component="calendar" calendarDateParam="date"/>
+        </urlQueryParameters>
+        <settings auto="true"/>
+    </facets>
+    <actions>
+        <action id="calendarHome" icon="HOME" />
+        <action id="calendarPrev" icon="ARROW_CIRCLE_LEFT" />
+        <action id="calendarNext" icon="ARROW_CIRCLE_RIGHT" />
+    </actions>
+    <layout>
+        <tabSheet id="contentTabSheet" width="100%" height="100%">
+            <tab id="calendarTab" label="msg://calendar">
+                <vbox width="100%" height="100%" padding="false">
+                    <split width="100%" themeNames="splitter-spacing" splitterPosition="16" height="100%">
+                        <vbox id="filterBox">
+                            <details summaryText="msg://visitType" width="100%" opened="true">
+                                <checkboxGroup id="visitTypeField"
+                                               themeNames="vertical"/>
+                            </details>
+                        </vbox>
+                        <vbox id="calendarBox">
+                            <hbox id="calendarButtonsPanel" classNames="buttons-panel" expand="spacer" alignItems="BASELINE">
+                                <button id="homeBtn" action="calendarHome"/>
+                                <button id="prevBtn" action="calendarPrev"/>
+                                <button id="nextBtn" action="calendarNext"/>
+                                <h4 id="calendarTitle" />
+                                <span id="spacer" />
+                                <select itemsEnum="io.jmix.petclinic.view.visit.CalendarViewMode"
+                                        id="calendarViewMode" />
+                            </hbox>
+
+                            <calendar:calendar
+                                    weekNumbersVisible="true"
+                                    navigationLinksEnabled="true"
+                                    eventResizableFromStart="true"
+                                    eventDurationEditable="true"
+                                    eventStartEditable="true"
+                                    selectMirror="true"
+                                    dayMaxEvents="5"
+                                    id="calendar"
+                                    width="100%"
+                                    height="100%">
+                                <calendar:dataProviders>
+                                    <calendar:containerDataProvider dataContainer="visitsCalendarDc"
+                                                                    title="description"
+                                                                    backgroundColor="typeBackgroundColor"
+                                                                    borderColor="typeBorderColor"
+                                                                    textColor="typeTextColor"
+                                                                    description="description"
+                                                                    startDateTime="visitStart"
+                                                                    endDateTime="visitEnd"/>
+                                </calendar:dataProviders>
+                            </calendar:calendar>
+                        </vbox>
+                    </split>
+                </vbox>
+            </tab>
+            <tab id="allVisitsTab" label="msg://allVisits">
+                <vbox width="100%" padding="false">
+                    <genericFilter id="genericFilter"
+                                   dataLoader="visitsDl">
+                        <properties include=".*"/>
+                    </genericFilter>
+                    <hbox id="buttonsPanel" classNames="buttons-panel">
+                        <button id="createBtn" action="visitsDataGrid.create"/>
+                        <button id="editBtn" action="visitsDataGrid.edit"/>
+                        <button id="removeBtn" action="visitsDataGrid.remove"/>
+                        <simplePagination id="pagination" dataLoader="visitsDl"/>
+                    </hbox>
+                    <dataGrid id="visitsDataGrid"
+                              width="100%"
+                              minHeight="20em"
+                              dataContainer="visitsDc"
+                              columnReorderingAllowed="true">
+                        <actions>
+                            <action id="create" type="list_create"/>
+                            <action id="edit" type="list_edit"/>
+                            <action id="remove" type="list_remove"/>
+                        </actions>
+                        <columns resizable="true">
+                            <column property="pet"/>
+                            <column property="type"/>
+                            <column property="visitStart"/>
+                            <column property="visitEnd"/>
+                            <column property="description"/>
+                            <column property="treatmentStatus"/>
+                        </columns>
+                    </dataGrid>
+                </vbox>
+            </tab>
+        </tabSheet>
+    </layout>
+</view>

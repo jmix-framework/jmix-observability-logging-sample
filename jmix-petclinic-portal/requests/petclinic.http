@@ -1,0 +1,107 @@
+
+GET {{baseUrl}}/rest/entities/petclinic_Owner
+Authorization: Bearer {{$auth.token("auth-id")}}
+
+###
+GET {{baseUrl}}/rest/entities/petclinic_Pet?limit=2
+Authorization: Bearer {{$auth.token("auth-id")}}
+
+
+###
+GET {{baseUrl}}/rest/entities/petclinic_Owner/351eb2d2-c70b-3af7-109c-2b19a5929101
+Authorization: Bearer {{$auth.token("auth-id")}}
+
+###
+
+POST {{baseUrl}}/rest/services/petclinic_OwnerRegistrationService/registerOwner
+Authorization: Bearer {{$auth.token("auth-id")}}
+Content-Type: application/json
+
+{
+  "ownerRegistration": {
+  "firstName": "blo"
+  }
+}
+###
+
+POST {{baseUrl}}/rest/entities/petclinic_Pet/search
+Authorization: Bearer {{$auth.token("auth-id")}}
+Content-Type: application/json
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "owner.id",
+        "operator": "=",
+        "value": "351eb2d2-c70b-3af7-109c-2b19a5929101"
+      }
+    ]
+  }
+}
+###
+
+POST {{baseUrl}}/rest/entities/petclinic_Owner/search
+Authorization: Bearer {{$auth.token("auth-id")}}
+Content-Type: application/json
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "id",
+        "operator": "=",
+        "value": "351eb2d2-c70b-3af7-109c-2b19a5929101"
+      }
+    ]
+  },
+  "fetchPlan": {
+    "entity": "petclinic_Owner",
+    "properties": [
+      "id",
+      "name",
+      {
+        "name": "pets",
+        "fetchPlan": {
+          "properties": [
+            "id",
+            "name"
+          ]
+        }
+      }
+    ]
+  }
+}
+###
+
+POST {{baseUrl}}/rest/entities/petclinic_Owner/search
+Authorization: Bearer {{$auth.token("auth-id")}}
+Content-Type: application/json
+
+{
+  "filter": {
+    "conditions": [
+      {
+        "property": "id",
+        "operator": "=",
+        "value": "351eb2d2-c70b-3af7-109c-2b19a5929101"
+      }
+    ]
+  },
+  "fetchPlan": {
+    "entity": "petclinic_Owner",
+    "properties": [
+      "id",
+      "name",
+      {
+        "name": "pets",
+        "fetchPlan": {
+          "properties": [
+            "id",
+            "name"
+          ]
+        }
+      }
+    ]
+  }
+}

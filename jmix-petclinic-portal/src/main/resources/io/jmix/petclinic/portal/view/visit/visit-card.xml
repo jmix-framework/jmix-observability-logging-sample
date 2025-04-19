@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data>
+        <instance id="visitDc" class="io.jmix.petclinic.portal.entity.Visit">
+            <loader id="visitDl"/>
+        </instance>
+    </data>
+    <actions>
+        <action id="detailsAction" text="msg://details"/>
+    </actions>
+    <content>
+        <hbox id="root"
+              classNames="visit-card"
+              spacing="false"
+              padding="false"
+              width="100%">
+            <vbox id="typeBlock"
+                  width="250px"
+                  classNames="visit-type-block">
+                <span classNames="visit-type" dataContainer="visitDc" property="type"/>
+                </vbox>
+
+            <vbox classNames="visit-details"
+                  spacing="true"
+                  padding="false"
+                  width="100%">
+
+                <h3>
+                    <div dataContainer="visitDc" property="pet.name"/>
+                </h3>
+
+                <div>
+                    <div classNames="font-bold" text="msg://date" />
+                    <div dataContainer="visitDc" property="visitStart"/>
+                </div>
+
+                <div>
+                    <div classNames="font-bold" text="msg://description"/>
+                    <div dataContainer="visitDc" property="description"/>
+                </div>
+
+                <button action="detailsAction"
+                        themeNames="primary"/>
+            </vbox>
+        </hbox>
+    </content>
+</fragment>

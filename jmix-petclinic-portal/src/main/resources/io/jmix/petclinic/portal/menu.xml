@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<menu-config xmlns="http://jmix.io/schema/flowui/menu">
+    <item view="Pet.list" title="msg://io.jmix.petclinic.portal.view.pet/petListView.title"/>
+    <item view="Visit.list" title="msg://io.jmix.petclinic.portal.view.visit/visitListView.title"/>
+</menu-config>

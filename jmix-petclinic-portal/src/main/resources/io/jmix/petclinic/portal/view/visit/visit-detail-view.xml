@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://visitDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="visitDc"
+                  class="io.jmix.petclinic.portal.entity.Visit">
+            <loader id="visitDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="closeAction" type="detail_close" icon="lumo:arrow-left" text="msg://back"/>
+    </actions>
+    <layout>
+        <hbox id="detailActions">
+            <button id="closeButton" action="closeAction" themeNames="tertiary-inline icon" />
+        </hbox>
+
+        <h3 dataContainer="visitDc" property="type" />
+        <formLayout id="form" dataContainer="visitDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="1"/>
+                <responsiveStep minWidth="40em" columns="2"/>
+            </responsiveSteps>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Visit.pet">
+                <div id="petField" property="pet" />
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Visit.type">
+                <div id="typeField" property="type" />
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Visit.visitStart">
+                <div id="visitStartField" property="visitStart" />
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Visit.visitEnd">
+                <div id="visitEndField" property="visitEnd" />
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Visit.description" colspan="2">
+                <div id="descriptionField" property="description" />
+            </formItem>
+        </formLayout>
+    </layout>
+</view>

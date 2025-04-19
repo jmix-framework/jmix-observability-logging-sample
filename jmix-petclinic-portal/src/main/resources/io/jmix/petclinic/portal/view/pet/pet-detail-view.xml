@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://petDetailView.title"
+      focusComponent="form">
+    <data>
+        <instance id="petDc"
+                  class="io.jmix.petclinic.portal.entity.Pet">
+            <loader id="petDl"/>
+        </instance>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <actions>
+        <action id="closeAction" type="detail_close" icon="lumo:arrow-left" text="msg://back"/>
+    </actions>
+    <layout>
+        <hbox id="detailActions">
+            <button id="closeButton" action="closeAction" themeNames="tertiary-inline icon" />
+        </hbox>
+
+        <h3 dataContainer="petDc" property="name" />
+        <formLayout id="form" dataContainer="petDc">
+            <responsiveSteps>
+                <responsiveStep minWidth="0" columns="1"/>
+                <responsiveStep minWidth="40em" columns="2"/>
+            </responsiveSteps>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Pet.name">
+                <div id="nameField" property="name"/>
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Pet.type">
+                <div id="typeField" property="type" />
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Pet.identificationNumber">
+                <div id="identificationNumberField" property="identificationNumber"/>
+            </formItem>
+            <formItem label="msg://io.jmix.petclinic.portal.entity/Pet.birthdate">
+                <div id="birthdateField" property="birthdate"/>
+            </formItem>
+        </formLayout>
+    </layout>
+</view>

@@ -1,0 +1,28 @@
+/* Predefined styles for the LoginView */
+
+
+.pet-card {
+  background-color: var(--lumo-base-color);
+  border-radius: var(--lumo-border-radius-l);
+  padding: var(--lumo-space-m);
+  box-shadow: var(--lumo-box-shadow-xs);
+  max-width: 300px;
+}
+
+.pet-image {
+  border-top-left-radius: var(--lumo-border-radius-l);
+  border-top-right-radius: var(--lumo-border-radius-l);
+  object-fit: cover;
+  height: 180px;
+  width: 100%;
+}
+
+.badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--lumo-border-radius-m);
+  font-size: var(--lumo-font-size-s);
+  background-color: var(--lumo-success-color-10pct);
+  color: var(--lumo-success-text-color);
+}
+

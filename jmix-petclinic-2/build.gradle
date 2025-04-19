@@ -1,0 +1,109 @@
+plugins {
+    id 'io.jmix' version '2.5.1'
+    id 'java'
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.1.9'
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.vaadin'
+
+jmix {
+    bomVersion = '2.5.1'
+    projectId = 'petclinic'
+}
+
+
+group = 'io.jmix'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://global.repo.jmix.io/repository/public'
+    }
+}
+
+vaadin {
+    optimizeBundle = false
+}
+
+dependencies {
+    // -----------------------------------------------------------
+    // CORE / Jmix Dependencies
+    // -----------------------------------------------------------
+    implementation 'io.jmix.core:jmix-core-starter'
+    implementation 'io.jmix.data:jmix-eclipselink-starter'
+    implementation 'io.jmix.security:jmix-security-starter'
+    implementation 'io.jmix.security:jmix-security-flowui-starter'
+    implementation 'io.jmix.security:jmix-security-data-starter'
+    implementation 'io.jmix.localfs:jmix-localfs-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-data-starter'
+    implementation 'io.jmix.flowui:jmix-flowui-themes'
+    implementation 'io.jmix.datatools:jmix-datatools-starter'
+    implementation 'io.jmix.datatools:jmix-datatools-flowui-starter'
+    implementation 'io.jmix.fullcalendar:jmix-fullcalendar-flowui-starter'
+
+    implementation 'io.jmix.flowui:jmix-flowui-kit'
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // -----------------------------------------------------------
+    // ACTUATOR
+    // -----------------------------------------------------------
+    // Spring Boot Actuator provides built-in endpoints (e.g. /actuator/health,
+    // /actuator/metrics, etc.) for monitoring and management.
+    // --> includes also micrometer core & micrometer observation
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // -----------------------------------------------------------
+    // LOGGING EXPORT (LOGBACK + OTEL EXPORT)
+    // -----------------------------------------------------------
+
+    // OpenTelemetry Logback Appender:
+    // This appender sends log events (including MDC attributes such as trace_id, span_id, etc.)
+    // to the OpenTelemetry Collector via OTLP.
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.1-alpha'
+
+    // OTLP Exporter:
+    // Required to export log records via the OTLP protocol to the OpenTelemetry Collector.
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+
+
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'io.jmix.flowui:jmix-flowui-test-assist'
+    implementation 'io.jmix.gridexport:jmix-gridexport-flowui-starter'
+
+    implementation 'org.apache.commons:commons-dbcp2'
+    implementation 'io.jmix.rest:jmix-rest-starter'
+    implementation 'io.jmix.authserver:jmix-authserver-starter'
+    implementation 'org.postgresql:postgresql'
+}
+
+configurations.implementation {
+    exclude group: 'com.vaadin', module: 'hilla'
+    exclude group: 'com.vaadin', module: 'hilla-dev'
+    exclude group: 'com.vaadin', module: 'copilot'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+idea {
+    module {
+        excludeDirs.addAll(files '.jmix', 'node_modules', 'src/main/frontend/generated/', 'src/main/bundles')
+    }
+}
+
+vaadin {
+    optimizeBundle = false
+}
+
+bootBuildImage {
+    if (rootProject.hasProperty('jmixDockerTag')) {
+        imageName = rootProject['jmixDockerTag']
+    }
+}

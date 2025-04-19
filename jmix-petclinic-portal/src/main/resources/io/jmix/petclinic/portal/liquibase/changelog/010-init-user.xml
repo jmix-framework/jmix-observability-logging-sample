@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!-- DO NOT REMOVE. This changelog is required for user management. -->
+
+    <changeSet id="1" author="jmix-petclinic-portal" context="!cuba">
+
+        <createTable tableName="USER_">
+            <column name="ID" type="${uuid.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="VERSION" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="OWNER_ID" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USERNAME" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="FIRST_NAME" type="varchar(255)"/>
+            <column name="LAST_NAME" type="varchar(255)"/>
+            <column name="PASSWORD" type="varchar(255)"/>
+            <column name="EMAIL" type="varchar(255)"/>
+            <column name="ACTIVE" type="boolean"/>
+            <column name="TIME_ZONE_ID" type="VARCHAR(255)"/>
+        </createTable>
+
+    </changeSet>
+
+    <changeSet id="2" author="jmix-petclinic-portal" context="!cuba">
+        <createIndex indexName="IDX_USER__ON_USERNAME"
+                     tableName="USER_" unique="true">
+            <column name="USERNAME"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="3" author="jmix-petclinic-portal" context="!cuba">
+
+        <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="e5f1e881-0001-4b90-a1e3-000000000001"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="1dd854d8-b5a2-79d5-5734-2207aa949ec4"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="EMAIL" value="jesse@example.com"/>
+            <column name="PASSWORD" value="{noop}jesse@example.com"/>
+            <column name="FIRST_NAME" value="Jessie"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e5f1e88100014b90a1e3000000000001"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="1dd854d8-b5a2-79d5-5734-2207aa949ec4"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="EMAIL" value="jesse@example.com"/>
+            <column name="PASSWORD" value="{noop}jesse@example.com"/>
+            <column name="FIRST_NAME" value="Jessie"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+
+        <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="e5f1e881-0001-4b90-a1e3-000000000002"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="351eb2d2-c70b-3af7-109c-2b19a5929101"/>
+            <column name="USERNAME" value="ash-ketchum@example.com"/>
+            <column name="EMAIL" value="ash-ketchum@example.com"/>
+            <column name="PASSWORD" value="{noop}ash-ketchum@example.com"/>
+            <column name="FIRST_NAME" value="Ash"/>
+            <column name="LAST_NAME" value="Ketchum"/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e5f1e88100014b90a1e3000000000002"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="351eb2d2-c70b-3af7-109c-2b19a5929101"/>
+            <column name="USERNAME" value="ash-ketchum@example.com"/>
+            <column name="EMAIL" value="ash-ketchum@example.com"/>
+            <column name="PASSWORD" value="{noop}ash-ketchum@example.com"/>
+            <column name="FIRST_NAME" value="Ash"/>
+            <column name="LAST_NAME" value="Ketchum"/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="e5f1e881-0001-4b90-a1e3-000000000003"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="79fa17b9-a130-207d-5091-f79cceb9cf99"/>
+            <column name="USERNAME" value="brock@example.com"/>
+            <column name="EMAIL" value="brock@example.com"/>
+            <column name="PASSWORD" value="{noop}brock@example.com"/>
+            <column name="FIRST_NAME" value="Brock"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e5f1e88100014b90a1e3000000000003"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="79fa17b9-a130-207d-5091-f79cceb9cf99"/>
+            <column name="USERNAME" value="brock@example.com"/>
+            <column name="EMAIL" value="brock@example.com"/>
+            <column name="PASSWORD" value="{noop}brock@example.com"/>
+            <column name="FIRST_NAME" value="Brock"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="e5f1e881-0001-4b90-a1e3-000000000004"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="9e583379-4043-a47f-2937-133204ac86b1"/>
+            <column name="USERNAME" value="james@example.com"/>
+            <column name="EMAIL" value="james@example.com"/>
+            <column name="PASSWORD" value="{noop}james@example.com"/>
+            <column name="FIRST_NAME" value="James"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e5f1e88100014b90a1e3000000000004"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="9e583379-4043-a47f-2937-133204ac86b1"/>
+            <column name="USERNAME" value="james@example.com"/>
+            <column name="EMAIL" value="james@example.com"/>
+            <column name="PASSWORD" value="{noop}james@example.com"/>
+            <column name="FIRST_NAME" value="James"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="e5f1e881-0001-4b90-a1e3-000000000005"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="c3bb4197-4189-c26a-2aa9-35c0ebb9faa4"/>
+            <column name="USERNAME" value="misty@example.com"/>
+            <column name="EMAIL" value="misty@example.com"/>
+            <column name="PASSWORD" value="{noop}misty@example.com"/>
+            <column name="FIRST_NAME" value="Misty"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="USER_" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="e5f1e88100014b90a1e3000000000005"/>
+            <column name="VERSION" value="1"/>
+            <column name="OWNER_ID" value="c3bb4197-4189-c26a-2aa9-35c0ebb9faa4"/>
+            <column name="USERNAME" value="misty@example.com"/>
+            <column name="EMAIL" value="misty@example.com"/>
+            <column name="PASSWORD" value="{noop}misty@example.com"/>
+            <column name="FIRST_NAME" value="Misty"/>
+            <column name="LAST_NAME" value=""/>
+            <column name="ACTIVE" valueBoolean="true"/>
+        </insert>
+
+    </changeSet>
+
+    <changeSet id="4" author="jmix-petclinic-portal" context="!cuba">
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14084"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14084"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14085"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="ash-ketchum@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14085"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="ash-ketchum@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14086"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="brock@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14086"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="brock@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14087"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="james@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14087"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="james@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14088"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="misty@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14088"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="misty@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="postgresql, mssql, hsqldb">
+            <column name="ID" value="6c9e420a-2b7a-4c42-8654-a9027ee14089"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+        <insert tableName="SEC_ROLE_ASSIGNMENT" dbms="oracle, mysql, mariadb">
+            <column name="ID" value="6c9e420a2b7a4c428654a9027ee14089"/>
+            <column name="VERSION" value="1"/>
+            <column name="USERNAME" value="jesse@example.com"/>
+            <column name="ROLE_CODE" value="owner-role"/>
+            <column name="ROLE_TYPE" value="resource"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

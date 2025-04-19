@@ -1,0 +1,67 @@
+### Send manual OTEL log
+< {%
+    const now = new Date();
+    const isoTimestamp = now.toISOString();
+    request.variables.set("isoTimestamp", isoTimestamp);
+
+    const unixNano = now.getTime() * 1_000_000;
+    request.variables.set("unixNano", unixNano.toString());
+%}
+POST http://localhost:4318/v1/logs
+Content-Type: application/json
+
+{
+  "resourceLogs": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": { "stringValue": "debug-log-service" }
+          }
+        ]
+      },
+      "scopeLogs": [
+        {
+          "scope": {
+            "name": "manual-log"
+          },
+          "logRecords": [
+            {
+              "timeUnixNano": "{{unixNano}}",
+              "severityText": "INFO",
+              "body": { "stringValue": "Test log entry at {{isoTimestamp}}" },
+              "attributes": [
+                {
+                  "key": "custom.attribute",
+                  "value": { "stringValue": "example-value" }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+###
+
+GET http://localhost:3100/loki/api/v1/query_range?query={job="debug-log-service"}&limit=20
+Accept: application/json
+
+> {%
+    client.test("Loki responded successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    client.test("Loki returned status 'success'", function () {
+        client.assert(response.body.status === "success", "Expected 'success' status but got " + response.body.status);
+    });
+    client.test("Loki returned expected log entry", function () {
+        const logs = response.body.data.result.flatMap(stream => stream.values.map(entry => entry[1]));
+        const found = logs.some(msg => msg.includes("Test log entry"));
+
+        console.log("Found log message:", JSON.parse(logs.find(msg => msg.includes("Test log entry"))));
+        client.assert(found, "Expected log message 'Test log entry' not found in response");
+    });
+%}

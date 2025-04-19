@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<fragment xmlns="http://jmix.io/schema/flowui/fragment">
+    <data>
+        <instance id="petDc"
+                  class="io.jmix.petclinic.portal.entity.Pet">
+            <loader id="petDl"/>
+        </instance>
+    </data>
+    <actions>
+        <action id="detailsAction" text="msg://details" />
+    </actions>
+    <content>
+        <vbox id="root" classNames="pet-card">
+            <image id="petIcon" classNames="pet-image"/>
+            <vbox spacing="true" padding="true">
+                <hbox spacing="false" padding="false" width="100%">
+                    <h3 width="100%"><span dataContainer="petDc" property="name">Pet Name</span></h3>
+                    <span classNames="badge success"><span dataContainer="petDc" property="type" /></span>
+                </hbox>
+                <span><span dataContainer="petDc" property="birthdate" /></span>
+                <button action="detailsAction" themeNames="primary"/>
+            </vbox>
+
+        </vbox>
+    </content>
+</fragment>

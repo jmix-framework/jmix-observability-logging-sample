@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://petListView.title">
+    <data>
+        <collection id="petsDc"
+                    class="io.jmix.petclinic.portal.entity.Pet">
+            <loader id="petsDl" readOnly="true"/>
+        </collection>
+    </data>
+    <facets>
+        <dataLoadCoordinator auto="true"/>
+    </facets>
+    <layout classNames="list-view">
+        <hbox id="cardWrapper" classNames="card-wrapper flex-wrap justify-center" />
+    </layout>
+</view>

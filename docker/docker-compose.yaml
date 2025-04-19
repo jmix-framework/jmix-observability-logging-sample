@@ -1,0 +1,99 @@
+services:
+
+  postgres:
+    build:
+      context: ./postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+
+  petclinic:
+    build:
+      context: ../jmix-petclinic-2
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/petclinic
+      MAIN_DATASOURCE_USERNAME: postgres
+      MAIN_DATASOURCE_PASSWORD: postgres
+      management.otlp.metrics.export.url: http://otel-collector:4318/v1/metrics
+      management.otlp.logging.endpoint: http://otel-collector:4318/v1/logs
+      management.otlp.tracing.endpoint: http://otel-collector:4318/v1/traces
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  petclinic-portal:
+    build:
+      context: ../jmix-petclinic-portal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      petclinic:
+        condition: service_healthy
+    environment:
+      main.datasource.url: jdbc:postgresql://postgres:5432/portal
+      main.datasource.username: postgres
+      main.datasource.password: postgres
+      petclinic.baseUrl: http://petclinic:8080
+      petclinic.clientId: petclinic-portal
+      petclinic.clientSecret: UYfIcnMhoL
+      management.otlp.metrics.export.url: http://otel-collector:4318/v1/metrics
+      management.otlp.logging.endpoint: http://otel-collector:4318/v1/logs
+      management.otlp.tracing.endpoint: http://otel-collector:4318/v1/traces
+    ports:
+      - "8081:8081"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.121.0
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "13133:13133"
+    volumes:
+      - ./otelcol-config.yaml:/config.yaml
+    command:
+      - --config=file:/config.yaml
+
+  loki:
+    image: grafana/loki:3.4
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3100/ready" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/grafana-datasources.yaml
+      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/grafana-dashboards.yaml
+      - ./spring-http-dashboard.json:/etc/grafana/spring-http-dashboard.json
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+networks:
+  default:
+    name: jmix-observability

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://MainView.title">
+    <actions>
+        <action id="logoutAction" type="logout"/>
+    </actions>
+    <layout alignItems="CENTER" padding="false">
+        <header id="header" classNames="jmix-main-view-header">
+            <div id="headerContentWrapper" classNames="jmix-main-view-header-content-wrapper">
+                <anchor id="baseLink"
+                        href="."
+                        classNames="jmix-main-view-application-title-top">
+                    <h2 id="applicationTitle"
+                        text="msg://applicationTitle.text"/>
+                </anchor>
+
+                <flexLayout alignItems="CENTER" css="gap: var(--lumo-space-m)">
+                    <userIndicator id="userIndicator"/>
+                    <button id="logoutButton"
+                            action="logoutAction"
+                            themeNames="tertiary-inline"
+                            classNames="jmix-logout-button"/>
+                </flexLayout>
+            </div>
+        </header>
+
+        <div id="layoutWrapper" classNames="jmix-main-view-layout-wrapper">
+
+            <vbox id="sidePanel" classNames="jmix-main-view-side-panel" padding="false">
+                <image id="logoImage" classNames="logo-image"
+                       resource="icons/petclinic_logo.svg"/>
+                <nav id="navigation"
+                     classNames="jmix-main-view-navigation"
+                     ariaLabel="msg://navigation.ariaLabel">
+                    <listMenu id="menu"/>
+                </nav>
+            </vbox>
+
+            <div id="contentWrapper" classNames="jmix-main-view-content-wrapper"/>
+
+            <div id="additionalColumn" classNames="jmix-main-view-additional-column">
+                <vbox id="contactInformation">
+                    <h3 text="msg://contactInformation"/>
+                    <html content="msg://contactInformationText" />
+                    <button text="msg://contactButton" themeNames="primary" icon="PHONE" width="100%"/>
+                </vbox>
+            </div>
+        </div>
+    </layout>
+</view>

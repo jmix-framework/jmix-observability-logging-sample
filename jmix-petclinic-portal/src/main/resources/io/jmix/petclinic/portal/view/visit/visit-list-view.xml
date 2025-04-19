@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<view xmlns="http://jmix.io/schema/flowui/view"
+      title="msg://visitListView.title">
+    <data>
+        <collection id="visitsDc"
+                    class="io.jmix.petclinic.portal.entity.Visit">
+            <fetchPlan extends="_base">
+                <property name="pet" fetchPlan="_base"/>
+            </fetchPlan>
+            <!--
+                This loader uses the Jmix REST Data Store mechanism:
+                https://docs.jmix.io/jmix/rest-ds/index.html#using-query-in-view-xml
+
+                The query syntax here is not JPQL, but a JSON-based filtering format,
+                which is parsed and executed by the REST data store implementation on the backend.
+            -->
+            <loader id="visitsDl" readOnly="true" maxResults="5">
+                <query>
+                    <![CDATA[
+                    {
+                      "property": "pet.owner.id",
+                      "operator": "=",
+                      "parameterName": "ownerId"
+                    }
+                    ]]>
+                </query>
+            </loader>
+
+        </collection>
+    </data>
+    <facets>
+
+        <dataLoadCoordinator>
+            <refresh loader="visitsDl">
+                <onViewEvent type="BeforeShow"/>
+            </refresh>
+            <refresh loader="visitsDl">
+                <onContainerItemChanged container="visitsDc" param="ownerId"/>
+            </refresh>
+        </dataLoadCoordinator>
+    </facets>
+    <actions>
+        <action id="selectAction" type="lookup_select"/>
+        <action id="discardAction" type="lookup_discard"/>
+    </actions>
+    <layout classNames="list-view">
+        <vbox id="cardWrapper" classNames="card-wrapper"/>
+    </layout>
+</view>

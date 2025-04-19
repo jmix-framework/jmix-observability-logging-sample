@@ -1,0 +1,6 @@
+rootProject.name = 'jmix-observability-logging-sample'
+
+includeBuild 'jmix-petclinic-2'
+includeBuild 'jmix-petclinic-portal'
+
+
