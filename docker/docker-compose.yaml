@@ -24,9 +24,7 @@ services:
       MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/petclinic
       MAIN_DATASOURCE_USERNAME: postgres
       MAIN_DATASOURCE_PASSWORD: postgres
-      management.otlp.metrics.export.url: http://otel-collector:4318/v1/metrics
-      management.otlp.logging.endpoint: http://otel-collector:4318/v1/logs
-      management.otlp.tracing.endpoint: http://otel-collector:4318/v1/traces
+      MANAGEMENT_OTLP_LOGGING_ENDPOINT: http://otel-collector:4318/v1/logs
     ports:
       - "8080:8080"
     healthcheck:
@@ -44,17 +42,21 @@ services:
       petclinic:
         condition: service_healthy
     environment:
-      main.datasource.url: jdbc:postgresql://postgres:5432/portal
-      main.datasource.username: postgres
-      main.datasource.password: postgres
-      petclinic.baseUrl: http://petclinic:8080
-      petclinic.clientId: petclinic-portal
-      petclinic.clientSecret: UYfIcnMhoL
-      management.otlp.metrics.export.url: http://otel-collector:4318/v1/metrics
-      management.otlp.logging.endpoint: http://otel-collector:4318/v1/logs
-      management.otlp.tracing.endpoint: http://otel-collector:4318/v1/traces
+      MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/portal
+      MAIN_DATASOURCE_USERNAME: postgres
+      MAIN_DATASOURCE_PASSWORD: postgres
+
+      PETCLINIC_BASEURL: http://petclinic:8080
+      PETCLINIC_CLIENTID: petclinic-portal
+      PETCLINIC_CLIENTSECRET: UYfIcnMhoL
+      MANAGEMENT_OTLP_LOGGING_ENDPOINT: http://otel-collector:4318/v1/logs
     ports:
       - "8081:8081"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.121.0

@@ -32,7 +32,7 @@ Once the JARs are built, Docker Compose will pick them up and copy them into the
 To run both applications along with the observability stack (PostgreSQL, Loki, Grafana, etc.), use the provided Docker Compose configuration:
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d
+docker compose -f docker/docker-compose.yaml up --build -d
 ```
 
 ```bash
