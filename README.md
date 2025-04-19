@@ -10,9 +10,9 @@ Learn more in the full guide: [Observability with Jmix](https://github.com/jmix-
 
 ---
 
-### Docker Image Build
+### Build the JAR Files
 
-You can build Docker images for both applications using [Spring Boot Buildpacks](https://docs.jmix.io/jmix/deployment/basic.html#docker-image). No Dockerfile is needed.
+Before starting the applications using Docker Compose, you need to build the JAR files.
 
 #### Build petclinic (backend)
 ```bash
@@ -22,24 +22,19 @@ You can build Docker images for both applications using [Spring Boot Buildpacks]
 
 #### Build petclinic-portal (frontend)
 ```bash
-./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-portal :jmix-petclinic-portal:clean :jmix-petclinic-portal:bootBuildImage -x test --no-build-cache
+./gradlew -Pvaadin.productionMode=true --include-build jmix-petclinic-portal :jmix-petclinic-portal:clean :jmix-petclinic-portal:bootJar -x test --no-build-cache
 ```
 
-After the build, the Docker images will be available locally:
-
-```bash
-docker images | grep jmix-petclinic
-jmix-petclinic         0.0.1-SNAPSHOT
-jmix-petclinic-portal  0.0.1-SNAPSHOT
-```
+Once the JARs are built, Docker Compose will pick them up and copy them into the containers using the provided Dockerfiles.
 
 ### Start the Applications
 
 To run both applications along with the observability stack (PostgreSQL, Loki, Grafana, etc.), use the provided Docker Compose configuration:
 
 ```bash
-docker compose -f docker/docker-compose-postgres.yaml -f docker/docker-compose.yaml up -d
+docker compose -f docker/docker-compose.yaml up -d
 ```
+
 ```bash
-docker compose -f docker/docker-compose-postgres.yaml -f docker/docker-compose.yaml down
+docker compose -f docker/docker-compose.yaml down
 ```
