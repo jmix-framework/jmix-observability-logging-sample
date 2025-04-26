@@ -4,9 +4,9 @@
     <data>
         <collection id="visitsDc"
                     class="io.jmix.petclinic.portal.entity.Visit">
-            <fetchPlan extends="_base">
-                <property name="pet" fetchPlan="_base"/>
-            </fetchPlan>
+<!--            <fetchPlan extends="_base">-->
+<!--                <property name="pet" fetchPlan="_base"/>-->
+<!--            </fetchPlan>-->
             <!--
                 This loader uses the Jmix REST Data Store mechanism:
                 https://docs.jmix.io/jmix/rest-ds/index.html#using-query-in-view-xml

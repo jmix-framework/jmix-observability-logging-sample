@@ -4,7 +4,27 @@
     <data>
         <collection id="petsDc"
                     class="io.jmix.petclinic.portal.entity.Pet">
-            <loader id="petsDl" readOnly="true"/>
+            <fetchPlan extends="_base">
+                <property name="type" fetchPlan="_base"/>
+            </fetchPlan>
+            <!--
+                This loader uses the Jmix REST Data Store mechanism:
+                https://docs.jmix.io/jmix/rest-ds/index.html#using-query-in-view-xml
+
+                The query syntax here is not JPQL, but a JSON-based filtering format,
+                which is parsed and executed by the REST data store implementation on the backend.
+            -->
+            <loader id="petsDl" readOnly="true">
+                <query>
+                    <![CDATA[
+                    {
+                      "property": "owner.id",
+                      "operator": "=",
+                      "parameterName": "ownerId"
+                    }
+                    ]]>
+                </query>
+            </loader>
         </collection>
     </data>
     <facets>
