@@ -6,9 +6,17 @@ Authorization: Bearer {{$auth.token("auth-id")}}
 GET {{baseUrl}}/rest/entities/petclinic_Pet?limit=2
 Authorization: Bearer {{$auth.token("auth-id")}}
 
+###
+GET {{baseUrl}}/rest/entities/petclinic_Pet/d27f2a47-5a8d-ba9e-07c1-ed0c6235ca83?fetchPlan=_base
+Authorization: Bearer {{$auth.token("auth-id")}}
+
 
 ###
 GET {{baseUrl}}/rest/entities/petclinic_Owner/351eb2d2-c70b-3af7-109c-2b19a5929101
+Authorization: Bearer {{$auth.token("auth-id")}}
+
+###
+GET {{baseUrl}}/rest/entities/petclinic_Visit/01964e38-b867-79e5-9826-7c1e5995d9bb
 Authorization: Bearer {{$auth.token("auth-id")}}
 
 ###

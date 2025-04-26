@@ -5,6 +5,9 @@
     <data>
         <instance id="petDc"
                   class="io.jmix.petclinic.portal.entity.Pet">
+            <fetchPlan extends="_base">
+                <property name="type" fetchPlan="_base"/>
+            </fetchPlan>
             <loader id="petDl"/>
         </instance>
     </data>

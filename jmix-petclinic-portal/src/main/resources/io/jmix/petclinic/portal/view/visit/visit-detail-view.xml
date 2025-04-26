@@ -5,6 +5,9 @@
     <data>
         <instance id="visitDc"
                   class="io.jmix.petclinic.portal.entity.Visit">
+            <fetchPlan extends="_base">
+                <property name="pet" fetchPlan="_instance_name"/>
+            </fetchPlan>
             <loader id="visitDl"/>
         </instance>
     </data>

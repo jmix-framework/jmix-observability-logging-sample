@@ -11,6 +11,8 @@ import io.jmix.flowui.view.*;
 import io.jmix.petclinic.portal.entity.User;
 import io.jmix.petclinic.portal.entity.Visit;
 import io.jmix.petclinic.portal.view.main.MainView;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @DialogMode(width = "50em")
 public class VisitListView extends StandardListView<Visit> {
 
+    private static final Logger log = LoggerFactory.getLogger(VisitListView.class);
     @ViewComponent
     private VerticalLayout cardWrapper;
     @Autowired
@@ -41,7 +44,10 @@ public class VisitListView extends StandardListView<Visit> {
 
     @Subscribe
     public void onInit(final InitEvent event) {
-        visitsDl.setParameter("ownerId", currentUser().getOwnerId());
+        String ownerId = currentUser().getOwnerId();
+        log.info("Loading visits for owner: {}", ownerId);
+
+        visitsDl.setParameter("ownerId", ownerId);
     }
 
     private User currentUser() {
