@@ -42,6 +42,7 @@ public class PetListView extends StandardListView<Pet> {
         return (User) currentAuthentication.getUser();
     }
 
+    // tag::init-pet-cards[]
     @Subscribe(id = "petsDc", target = Target.DATA_CONTAINER)
     public void onPetsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Visit> event) {
         cardWrapper.removeAll();
@@ -59,5 +60,6 @@ public class PetListView extends StandardListView<Pet> {
         );
         cardWrapper.add(petCard);
     }
+    // end::init-pet-cards[]
 
 }

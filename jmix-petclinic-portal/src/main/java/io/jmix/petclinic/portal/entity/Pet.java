@@ -11,17 +11,24 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-@Store(name = "petclinic")
+// tag::start-class[]
 @JmixEntity
-@RestDataStoreEntity(remoteName = "petclinic_Pet")
+@Store(name = "petclinic") // <1>
+@RestDataStoreEntity(remoteName = "petclinic_Pet") // <2>
 public class Pet {
+
     @JmixGeneratedValue
     @JmixId
     private UUID id;
 
     private List<Visit> visits;
+
     @InstanceName
     private String name;
+
+    // ...
+
+    // end::start-class[]
 
     private PetType type;
 
@@ -76,4 +83,7 @@ public class Pet {
     public void setId(UUID id) {
         this.id = id;
     }
+
+// tag::end-class[]
 }
+// end::end-class[]

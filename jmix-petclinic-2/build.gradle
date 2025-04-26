@@ -48,6 +48,11 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // tag::rest-api-dependencies[]
+    implementation 'io.jmix.rest:jmix-rest-starter'
+    implementation 'io.jmix.authserver:jmix-authserver-starter'
+    // end::rest-api-dependencies[]
+
     // -----------------------------------------------------------
     // ACTUATOR
     // -----------------------------------------------------------
@@ -77,8 +82,8 @@ dependencies {
     implementation 'io.jmix.gridexport:jmix-gridexport-flowui-starter'
 
     implementation 'org.apache.commons:commons-dbcp2'
-    implementation 'io.jmix.rest:jmix-rest-starter'
-    implementation 'io.jmix.authserver:jmix-authserver-starter'
+
+
     implementation 'org.postgresql:postgresql'
 }
 

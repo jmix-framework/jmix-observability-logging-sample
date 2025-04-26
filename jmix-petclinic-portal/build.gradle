@@ -39,10 +39,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
+    // tag::rest-ds-dependencies[]
     implementation 'io.jmix.restds:jmix-restds-starter'
-
-
-//    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // end::rest-ds-dependencies[]
 
 
     // -----------------------------------------------------------

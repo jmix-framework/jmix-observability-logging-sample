@@ -2,18 +2,12 @@
 <view xmlns="http://jmix.io/schema/flowui/view"
       title="msg://petListView.title">
     <data>
+        <!-- tag::loading-pets[] -->
         <collection id="petsDc"
                     class="io.jmix.petclinic.portal.entity.Pet">
             <fetchPlan extends="_base">
                 <property name="type" fetchPlan="_base"/>
             </fetchPlan>
-            <!--
-                This loader uses the Jmix REST Data Store mechanism:
-                https://docs.jmix.io/jmix/rest-ds/index.html#using-query-in-view-xml
-
-                The query syntax here is not JPQL, but a JSON-based filtering format,
-                which is parsed and executed by the REST data store implementation on the backend.
-            -->
             <loader id="petsDl" readOnly="true">
                 <query>
                     <![CDATA[
@@ -26,6 +20,7 @@
                 </query>
             </loader>
         </collection>
+        <!-- end::loading-pets[] -->
     </data>
     <facets>
         <dataLoadCoordinator auto="true"/>

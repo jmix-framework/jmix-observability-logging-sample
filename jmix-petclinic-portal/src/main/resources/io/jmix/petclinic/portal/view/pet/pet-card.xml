@@ -20,7 +20,6 @@
                 <span><span dataContainer="petDc" property="birthdate" /></span>
                 <button action="detailsAction" themeNames="primary"/>
             </vbox>
-
         </vbox>
     </content>
 </fragment>
