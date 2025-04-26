@@ -174,25 +174,87 @@ https://www.youtube.com/watch?v=roBa0Qb8R2E[Building Consumer-Facing Apps with J
 [[introduction-to-observability]]
 === Introduction to Observability
 
-Short introduction explaining what observability means, why it is important, and the three pillars: logs, metrics, and traces.
+Observability is the ability to understand the internal state of a system based on the data it produces.
+
+While observability is beneficial for any application, it becomes especially critical in distributed systems and microservice architectures, where system complexity increases and understanding behavior across multiple components becomes significantly more challenging.
+
+In traditional environments, administrators could often still introspect systems at the operating system level to investigate problems. In modern cloud environments, containerized setups, and Kubernetes-based infrastructures, this is no longer possible. Applications are isolated, ephemeral, and distributed across nodes, making direct access for debugging or inspection infeasible.
+
+As a result, the need has emerged to extract telemetry data — logs, metrics, and traces — directly from applications and forward it into specialized observability systems for centralized collection, analysis, and monitoring.
+
+Observability is typically built around three main pillars:
+
+- **Logs**: Structured or unstructured records of events that have occurred within the system.
+- **Metrics**: Numerical data that represent measurements over time, such as response times, error rates, or system load.
+- **Traces**: Records of the flow of a request as it passes through different parts of the system.
+
+In this guide, we focus primarily on logging. We will see how to use structured logs and centralize logging across multiple applications to improve monitoring, troubleshooting, and overall system understanding.
 
 [[centralized-logging]]
 === Centralized Logging
 
-Explanation why centralized logging is important and what we want to achieve by collecting logs across application boundaries.
+Centralized logging refers to the practice of collecting log data from multiple applications and systems into a single, centralized location for analysis and monitoring. This approach simplifies troubleshooting, enhances visibility across distributed systems, and enables proactive issue detection.
 
+There are various ways to implement centralized logging. Many cloud providers offer managed logging services, such as AWS CloudWatch, Google Cloud Logging, or Microsoft Azure Monitor, which automatically collect logs from infrastructure and applications. Additionally, there are SaaS-based observability platforms like Datadog, which provide extensive logging, monitoring, and alerting capabilities as a service. For teams that prefer to manage their own infrastructure, self-hosted solutions such as the Elastic Stack (formerly ELK Stack) or Grafana Loki are popular options. These solutions allow full control over data retention, cost management, and system integration.
 
-[[grafana-loki-and-grafana]]
-=== Grafana Loki and Grafana
+Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization. Centralized logging significantly improves system observability by enabling cross-application search, building dashboards, and detecting patterns or anomalies across the entire environment.
 
-Introduction to Grafana Loki as the storage system for logs and Grafana as the UI for visualizing and querying the collected logs.
+[[structured-logging]]
+=== Structured Logging
 
+Structured logging refers to writing logs in a machine-readable format such as JSON or key-value pairs, rather than plain text messages. This makes it significantly easier for centralized logging systems to parse, index, and query logs efficiently.
+
+With structured logs, fields like `userId`, `petId`, or `errorType` can be used directly in queries, enabling fast and precise troubleshooting. It also supports advanced use cases such as automated detection and masking of sensitive information (PII), building dynamic dashboards, and correlating events across distributed systems.
+
+Here’s an example of a structured log entry in JSON format:
+
+[source,json]
+----
+{
+  "timestamp": "2025-04-26T08:45:30.123Z",
+  "level": "ERROR",
+  "service": "petclinic-portal",
+  "errorType": "ValidationError",
+  "message": "Pet name must not be empty",
+  "attributes": {
+    "userId": "8fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "petId": "5e8b6c45-0c12-4f0f-bc47-1a6a5d2cf08d"
+  }
+}
+----
+
+In contrast, a traditional log entry using a default Logback console appender might look like this:
+
+[source,text]
+----
+2025-04-26 08:45:30 ERROR  [http-nio-8080-exec-7] io.jmix.petclinic.portal.view.pet.PetListView - Pet name must not be empty for Pet: 5e8b6c45
+----
+
+In the unstructured format, important details like the `userId` are missing, and the `petId` is embedded inside the text, making it difficult for automated systems to extract and use this information reliably.
+
+To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.
+
+[[grafana-loki]]
+=== Grafana Loki
+
+In this guide, we use Grafana Loki as the centralized logging backend to collect and store application logs.
+
+Grafana Loki is designed for efficient and scalable log storage, particularly in modern, cloud-native environments. Unlike traditional full-text search systems, Loki indexes only selected metadata fields, called labels—such as `app`, `env`, or `service`—while the full log messages are stored separately without full indexing.
+
+This architecture significantly reduces memory usage and storage requirements, offering a cost-effective solution for centralized logging. Loki integrates seamlessly with other components of the observability stack, such as Grafana for visualization, Prometheus for metrics, and Tempo for distributed tracing.
 
 [[open-telemetry]]
 === OpenTelemetry
 
-Explanation of the OpenTelemetry project, its role in observability, and how it helps in exporting and collecting logs from applications.
+OpenTelemetry is an open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.
 
+In this guide, OpenTelemetry is mainly relevant as the mechanism we use to transport logs from the applications to the centralized backend. We use the **OpenTelemetry Collector** as an intermediary: it receives telemetry data from the applications and forwards it to Grafana Loki. This approach decouples the applications from the backend and gives flexibility to switch or extend targets easily.
+
+Communication happens via the **OpenTelemetry Protocol (OTLP)**, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.
+
+While OpenTelemetry also provides APIs and SDKs to instrument applications directly, we use the **Spring Boot Actuator** to expose structured logs in this guide.
+
+Spring Boot Actuator provides a unified way to expose not only logs, but also health checks, metrics, and other operational endpoints. Additionally, it now supports exporting distributed tracing data, which we will explore in more detail in the next part of this guide.
 
 [[spring-boot-actuator-open-telemetry-integration]]
 === Spring Boot Actuator and OpenTelemetry Integration
