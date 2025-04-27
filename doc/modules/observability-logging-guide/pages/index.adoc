@@ -235,13 +235,48 @@ In the unstructured format, important details like the `userId` are missing, and
 To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.
 
 [[grafana-loki]]
-=== Grafana Loki
+=== Grafana Loki and Grafana UI
 
-In this guide, we use Grafana Loki as the centralized logging backend to collect and store application logs.
+In this guide, we use Grafana Loki as the centralized backend for storing and querying application logs, and Grafana as the user interface for visualization.
 
-Grafana Loki is designed for efficient and scalable log storage, particularly in modern, cloud-native environments. Unlike traditional full-text search systems, Loki indexes only selected metadata fields, called labels—such as `app`, `env`, or `service`—while the full log messages are stored separately without full indexing.
+Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of labels (like `app`, `env`, or `service`) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.
 
-This architecture significantly reduces memory usage and storage requirements, offering a cost-effective solution for centralized logging. Loki integrates seamlessly with other components of the observability stack, such as Grafana for visualization, Prometheus for metrics, and Tempo for distributed tracing.
+We chose Loki because it integrates seamlessly into the broader Grafana observability stack, alongside Tempo for distributed tracing and Prometheus for metrics, offering a consistent and unified monitoring experience.
+
+We also use Grafana as a unified observability interface where all telemetry data — logs, metrics, and traces — can be visualized and explored in one place.
+
+Initially, we connect it to Loki to collect and analyze application logs. In follow-up guides, we will extend the setup to include metrics from Prometheus and distributed traces from Tempo, all integrated into Grafana for a seamless observability experience.
+
+==== Setting up Grafana Loki and Grafana using Docker
+
+We run Loki and Grafana locally via Docker for centralized logging and visualization.
+
+A minimal setup for running both Loki and Grafana using Docker is provided below.
+
+.docker-compose.yaml
+[source,yaml,indent=0]
+----
+include::example$/docker/docker-compose.yaml[tags=loki]
+----
+
+We also provision Grafana with a data source configuration that connects it automatically to Loki:
+
+.grafana-datasources.yaml
+[source,yaml,indent=0]
+----
+include::example$/docker/grafana-datasources.yaml[tags=start;loki-only]
+----
+
+To start the infrastructure, simply run the following command from the project root:
+
+[source,shell]
+----
+docker compose -f docker/docker-compose.yaml up -d
+----
+
+With Grafana and Loki running, we can now start forwarding logs from our applications into the centralized logging system.
+
+To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector.
 
 [[open-telemetry]]
 === OpenTelemetry
@@ -252,15 +287,82 @@ In this guide, OpenTelemetry is mainly relevant as the mechanism we use to trans
 
 Communication happens via the **OpenTelemetry Protocol (OTLP)**, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.
 
-While OpenTelemetry also provides APIs and SDKs to instrument applications directly, we use the **Spring Boot Actuator** to expose structured logs in this guide.
+==== OpenTelemetry Collector Setup
 
-Spring Boot Actuator provides a unified way to expose not only logs, but also health checks, metrics, and other operational endpoints. Additionally, it now supports exporting distributed tracing data, which we will explore in more detail in the next part of this guide.
+We use the OpenTelemetry Collector to receive logs via OTLP and forward them to Grafana Loki.
+
+Thanks to the standardized OTLP format, the setup remains flexible and can easily be extended to send telemetry data to other observability backends if needed.
+
+We run the OpenTelemetry Collector as a Docker container. The `docker-compose.yaml` contains the necessary definition:
+
+.docker-compose.yaml
+[source,yaml,indent=0]
+----
+include::example$/docker/docker-compose.yaml[tags=otel-collector]
+----
+
+The OpenTelemetry Collector is configured using a YAML file (`otelcol-config.yaml`). We configure it to receive logs over OTLP (on port `4318`), process them in batches, and export them to Grafana Loki.
+
+.otelcol-config.yaml
+[source,yaml,indent=0]
+----
+include::example$/docker/otelcol-config.yaml[]
+----
 
 [[spring-boot-actuator-open-telemetry-integration]]
 === Spring Boot Actuator and OpenTelemetry Integration
 
-Overview of how Spring Boot Actuator exposes logs and metrics, and how the OpenTelemetry Collector consumes and processes them.
+We use Spring Boot Actuator as the main way to expose operational data from our applications. Actuator provides a set of ready-made endpoints like `/health`, `/metrics`, and `/loggers`, which can be used for monitoring and management purposes — though in this guide, our focus is specifically on logging.
 
+More importantly, Actuator integrates with https://micrometer.io[Micrometer], a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.
+
+For log collection, we extend Actuator's capabilities by wiring the logging system to the OpenTelemetry Collector using the OpenTelemetry Logback Appender. This allows us to export structured logs from the application in the OpenTelemetry Protocol (OTLP) format, ready to be picked up by the centralized collector.
+
+In this part of the guide, we focus on configuring structured logging with OpenTelemetry. In later parts, we will build on the same foundation to add metrics and distributed tracing.
+
+[[spring-boot-actuator-open-telemetry-integration]]
+=== Spring Boot Actuator and Application Setup
+
+We configure our applications to export structured logs directly to the OpenTelemetry Collector using Spring Boot Actuator and Micrometer.
+
+==== Dependencies
+
+First, we add the required dependencies to the `build.gradle`:
+
+.build.gradle
+[source,gradle,indent=0]
+----
+include::example$/portal/build.gradle[tags=actuator-logging-deps]
+----
+
+Next, we define the OTLP logging endpoint in the application's `application.properties`:
+
+.application.properties
+[source,properties,indent=0]
+----
+include::example$/portal/src/main/resources/application.properties[tags=logging-export]
+----
+
+This configuration points the log output to the OpenTelemetry Collector running locally.
+
+
+Additionally we need to create the logging configuration (`logback-spring.xml`) to forward log events both to the console and to OpenTelemetry:
+
+.logback-spring.xml
+[source,xml,indent=0]
+----
+include::example$/portal/src/main/resources/logback-spring.xml[]
+----
+
+Finally, we initialize the OpenTelemetry Logback Appender at application startup to connect it properly with the OpenTelemetry SDK:
+
+.OpenTelemetryAppenderInitializer.java
+[source,java,indent=0]
+----
+include::example$/portal/src/main/java/io/jmix/petclinic/portal/config/OpenTelemetryAppenderInitializer.java[]
+----
+
+With this setup in place, all application logs are structured, enriched with contextual metadata, and sent directly to the OpenTelemetry Collector via OTLP.
 
 [[summary]]
 == Summary

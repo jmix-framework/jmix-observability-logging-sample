@@ -596,29 +596,26 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="what-we-are-going-to-build">What We are Going to Build</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this guide, we will enhance the <a href="https://github.com/jmix-framework/jmix-petclinic-2" target="_blank" rel="noopener">Jmix Petclinic</a> example by setting up centralized logging across two applications: the Jmix Petclinic application and the Jmix Petclinic Portal.</p>
+<p>This guide focuses on setting up centralized logging across two applications: the Jmix Petclinic application and the Jmix Petclinic Portal.</p>
 </div>
 <div class="paragraph">
-<p>We will:</p>
+<p>As part of the setup, we also explore how the Petclinic Portal is built and how it interacts with the Petclinic backend using the Jmix REST Data Store.</p>
+</div>
+<div class="paragraph">
+<p>The main steps covered in this guide are:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Configure both applications to send their logs to a centralized OpenTelemetry Collector.</p>
+<p>Configuring both applications to send their logs to a centralized logging system.</p>
 </li>
 <li>
-<p>Set up the supporting infrastructure including the OpenTelemetry Collector, Grafana Loki as the logging database, and Grafana as the visualization UI.</p>
+<p>Setting up the supporting infrastructure, including the OpenTelemetry Collector, Grafana Loki as the logging database, and Grafana as the visualization UI.</p>
 </li>
 <li>
-<p>Configure the applications to export their logs in a format that can be understood by the OpenTelemetry Collector.</p>
-</li>
-<li>
-<p>Package the infrastructure using Docker to easily start and manage the system.</p>
+<p>Configuring the applications to export their logs in a format compatible with the OpenTelemetry Collector.</p>
 </li>
 </ul>
-</div>
-<div class="paragraph">
-<p>After completing this guide, you will be able to monitor logs across application boundaries in a centralized dashboard.</p>
 </div>
 <div class="sect2">
 <h3 id="petclinic-portal">Petclinic Portal</h3>
@@ -630,10 +627,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </td>
 <td class="content">
 <div class="paragraph">
-<p>The following sections describe the Petclinic Portal application, its connection to the Petclinic backend, and how the integration is set up.</p>
+<p>The following section describes the Petclinic Portal application, its connection to the Petclinic backend, and how the integration is set up.</p>
 </div>
 <div class="paragraph">
-<p>If you are only interested in centralized logging and observability topics, you can skip these sections and continue directly with the Logging setup.</p>
+<p>If you are only interested in centralized logging and observability topics, you can skip this section and continue directly with <a href="#introduction-to-observability">Introduction to Observability</a>.</p>
 </div>
 </td>
 </tr>
@@ -653,11 +650,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>The Jmix REST Data Store provides an easy way to connect two Jmix applications using a REST API. In this setup, the Petclinic Portal fetches data such as <code>Pet</code> and <code>Visit</code> entities from the Petclinic backend without persisting or managing the data itself.</p>
 </div>
 <div class="paragraph">
-<p>By leveraging the REST Data Store, you can build lightweight frontend applications that consume the functionality and data of an existing Jmix application through standardized REST endpoints. This approach keeps the system modular and clean, and allows scaling or adapting frontend applications independently.</p>
+<p>By leveraging the REST Data Store, the Petclinic Portal and the Petclinic backend are cleanly separated.</p>
+</div>
+<div class="paragraph">
+<p>This enables deploying the Portal as an internet-facing application with its own authentication mechanisms, such as OIDC, without exposing the full backend to the internet. Only a minimal, targeted subset of functionality is exported, making it easier to tailor the user experience precisely to the needs of the end users while maintaining a strict separation between core data management and customer-facing operations.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_exposing_a_secure_rest_api_in_petclinic">Exposing a Secure REST API in Petclinic</h4>
+<h4 id="_exposing_generic_rest_api_in_petclinic">Exposing generic REST API in Petclinic</h4>
 <div class="paragraph">
 <p>To enable the Petclinic application to expose its data through REST, we first need to add the following dependencies to the <code>build.gradle</code> file:</p>
 </div>
@@ -672,7 +672,7 @@ implementation 'io.jmix.authserver:jmix-authserver-starter'</code></pre>
 <p>This will add support for the Jmix Generic REST API and OAuth2 authorization server capabilities to the application.</p>
 </div>
 <div class="paragraph">
-<p>In order to allow the Petclinic Portal to securely access the Petclinic backend, we configure an OAuth2 client for the portal in the <code>application.properties</code> file of the Petclinic backend.</p>
+<p>In order to allow the Petclinic Portal to access the Petclinic backend, we configure an OAuth2 client for the portal in the <code>application.properties</code> file of the Petclinic backend.</p>
 </div>
 <div class="listingblock">
 <div class="title">application.properties</div>
@@ -699,14 +699,14 @@ jmix.authserver.client.petclinic-portal.resource-roles=system-full-access</code>
 <p>In this configuration, the Petclinic Portal authenticates as a system client using the <code>client_credentials</code> flow.</p>
 </div>
 <div class="paragraph">
-<p>This avoids the need for creating user accounts in the Petclinic backend, and instead applies data filtering programmatically within the portal application.</p>
+<p>This avoids the need for creating user accounts in the Petclinic, and instead applies data filtering programmatically within the portal application.</p>
 </div>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>With these configurations, the Jmix Petclinic application now exposes a secure REST API protected by OAuth2. Let&#8217;s now look into how to configure the Portal application to use the Petclinic REST API backend.</p>
+<p>With these configurations, the Jmix Petclinic application now exposes a REST API protected by OAuth2. Let&#8217;s now look into how to configure the Portal application to use the Petclinic REST API backend.</p>
 </div>
 </div>
 <div class="sect3">
@@ -722,9 +722,6 @@ jmix.authserver.client.petclinic-portal.resource-roles=system-full-access</code>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">implementation 'io.jmix.restds:jmix-restds-starter'</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>This ensures that the portal application has access to the Jmix REST Data Store components.</p>
 </div>
 <div class="paragraph">
 <p>Next, we need to configure the connection details to the backend Petclinic application in the <code>application.properties</code> file:</p>
@@ -800,7 +797,7 @@ public class Pet {
 <p>After creating and connecting the DTO entities, we can use them like any other entities within Jmix views.</p>
 </div>
 <div class="paragraph">
-<p>We define a data loader in the Portal Pet List View to load <code>Pet</code> entities. When using the Jmix REST Data Store, the data loader works slightly differently compared to standard database loaders: it uses a JSON-based query format instead of JPQL.</p>
+<p>We define a data loader in the Portal <code>pet-list-view.xml</code> to load <code>Pet</code> entities. When using the Jmix REST Data Store, the data loader works slightly differently compared to standard database loaders: it uses a JSON-based query format instead of JPQL.</p>
 </div>
 <div class="paragraph">
 <p>Here’s an example of how the <code>Pet</code> entities are loaded for the currently logged-in owner:</p>
@@ -847,23 +844,7 @@ public class Pet {
 </div>
 </div>
 <div class="paragraph">
-<p>To demonstrate this, we briefly explain the approach using a simple example below.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-To see how to build such consumer-facing applications with Jmix, watch the following video:
-<a href="https://www.youtube.com/watch?v=roBa0Qb8R2E" target="_blank" rel="noopener">Building Consumer-Facing Apps with Jmix</a>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>We use a Fragment to represent each <code>Pet</code> entity visually as a card component. Each card displays key information such as the pet’s name, type, birthdate, and offers a button to navigate to the detailed view.</p>
+<p>We use a Fragment to represent each <code>Pet</code> entity visually as a card component. Each card displays key information such as the pet’s name, type, birthdate, and offers a button to navigate to the detail view.</p>
 </div>
 <div class="listingblock">
 <div class="title">pet-card.xml</div>
@@ -896,23 +877,7 @@ To see how to build such consumer-facing applications with Jmix, watch the follo
 </div>
 </div>
 <div class="paragraph">
-<p>The visual appearance of the cards is defined using custom CSS rules that extend and complement the standard Lumo theme.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>The <code>.pet-card</code> class provides the card container with a background color, rounded corners, internal padding, and a subtle shadow for a clean floating effect.</p>
-</li>
-<li>
-<p>The <code>.pet-image</code> class ensures the pet image fits nicely into the card, with proper corner rounding and a fixed height.</p>
-</li>
-<li>
-<p>The <code>.badge</code> class styles the type label of the pet, giving it a colored background and rounded shape to highlight the information visually.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The custom CSS rules are defined in a separate file under <code>src/main/frontend/themes/jmix-petclinic-portal/view/pet-card.css</code>:</p>
+<p>The visual appearance of the cards is defined using a small set of custom CSS classes that extend and complement the standard Lumo theme. These styles are organized in a dedicated file under <code>src/main/frontend/themes/jmix-petclinic-portal/view/pet-card.css</code>:</p>
 </div>
 <div class="listingblock">
 <div class="title">pet-card.css</div>
@@ -944,7 +909,10 @@ To see how to build such consumer-facing applications with Jmix, watch the follo
 </div>
 </div>
 <div class="paragraph">
-<p>Cards are dynamically created when the <code>Pet</code> data is loaded into the Pet List View:</p>
+<p>Cards are dynamically created when the <code>Pet</code> data is loaded into the Pet List View by reacting to a <code>CollectionContainer.CollectionChangeEvent</code> on the data container.</p>
+</div>
+<div class="paragraph">
+<p>This event listener allows us to rebuild the card layout each time the set of loaded pets changes.</p>
 </div>
 <div class="listingblock">
 <div class="title">PetListView.java (excerpt)</div>
@@ -968,36 +936,410 @@ private void addPetCard(Pet pet) {
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To see how to build such consumer-facing applications with Jmix in more detail, watch the following video:
+<a href="https://www.youtube.com/watch?v=roBa0Qb8R2E" target="_blank" rel="noopener">Building Consumer-Facing Apps with Jmix</a>
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="introduction-to-observability">Introduction to Observability</h3>
 <div class="paragraph">
-<p>Short introduction explaining what observability means, why it is important, and the three pillars: logs, metrics, and traces.</p>
+<p>Observability is the ability to understand the internal state of a system based on the data it produces.</p>
+</div>
+<div class="paragraph">
+<p>While observability is beneficial for any application, it becomes especially critical in distributed systems and microservice architectures, where system complexity increases and understanding behavior across multiple components becomes significantly more challenging.</p>
+</div>
+<div class="paragraph">
+<p>In traditional environments, administrators could often still introspect systems at the operating system level to investigate problems. In modern cloud environments, containerized setups, and Kubernetes-based infrastructures, this is no longer possible. Applications are isolated, ephemeral, and distributed across nodes, making direct access for debugging or inspection infeasible.</p>
+</div>
+<div class="paragraph">
+<p>As a result, the need has emerged to extract telemetry data — logs, metrics, and traces — directly from applications and forward it into specialized observability systems for centralized collection, analysis, and monitoring.</p>
+</div>
+<div class="paragraph">
+<p>Observability is typically built around three main pillars:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Logs</strong>: Structured or unstructured records of events that have occurred within the system.</p>
+</li>
+<li>
+<p><strong>Metrics</strong>: Numerical data that represent measurements over time, such as response times, error rates, or system load.</p>
+</li>
+<li>
+<p><strong>Traces</strong>: Records of the flow of a request as it passes through different parts of the system.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this guide, we focus primarily on logging. We will see how to use structured logs and centralize logging across multiple applications to improve monitoring, troubleshooting, and overall system understanding.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="centralized-logging">Centralized Logging</h3>
 <div class="paragraph">
-<p>Explanation why centralized logging is important and what we want to achieve by collecting logs across application boundaries.</p>
+<p>Centralized logging refers to the practice of collecting log data from multiple applications and systems into a single, centralized location for analysis and monitoring. This approach simplifies troubleshooting, enhances visibility across distributed systems, and enables proactive issue detection.</p>
+</div>
+<div class="paragraph">
+<p>There are various ways to implement centralized logging. Many cloud providers offer managed logging services, such as AWS CloudWatch, Google Cloud Logging, or Microsoft Azure Monitor, which automatically collect logs from infrastructure and applications. Additionally, there are SaaS-based observability platforms like Datadog, which provide extensive logging, monitoring, and alerting capabilities as a service. For teams that prefer to manage their own infrastructure, self-hosted solutions such as the Elastic Stack (formerly ELK Stack) or Grafana Loki are popular options. These solutions allow full control over data retention, cost management, and system integration.</p>
+</div>
+<div class="paragraph">
+<p>Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization. Centralized logging significantly improves system observability by enabling cross-application search, building dashboards, and detecting patterns or anomalies across the entire environment.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="grafana-loki-and-grafana">Grafana Loki and Grafana</h3>
+<h3 id="structured-logging">Structured Logging</h3>
 <div class="paragraph">
-<p>Introduction to Grafana Loki as the storage system for logs and Grafana as the UI for visualizing and querying the collected logs.</p>
+<p>Structured logging refers to writing logs in a machine-readable format such as JSON or key-value pairs, rather than plain text messages. This makes it significantly easier for centralized logging systems to parse, index, and query logs efficiently.</p>
+</div>
+<div class="paragraph">
+<p>With structured logs, fields like <code>userId</code>, <code>petId</code>, or <code>errorType</code> can be used directly in queries, enabling fast and precise troubleshooting. It also supports advanced use cases such as automated detection and masking of sensitive information (PII), building dynamic dashboards, and correlating events across distributed systems.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example of a structured log entry in JSON format:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "timestamp": "2025-04-26T08:45:30.123Z",
+  "level": "ERROR",
+  "service": "petclinic-portal",
+  "errorType": "ValidationError",
+  "message": "Pet name must not be empty",
+  "attributes": {
+    "userId": "8fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "petId": "5e8b6c45-0c12-4f0f-bc47-1a6a5d2cf08d"
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In contrast, a traditional log entry using a default Logback console appender might look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">2025-04-26 08:45:30 ERROR  [http-nio-8080-exec-7] io.jmix.petclinic.portal.view.pet.PetListView - Pet name must not be empty for Pet: 5e8b6c45</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the unstructured format, important details like the <code>userId</code> are missing, and the <code>petId</code> is embedded inside the text, making it difficult for automated systems to extract and use this information reliably.</p>
+</div>
+<div class="paragraph">
+<p>To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="grafana-loki">Grafana Loki and Grafana UI</h3>
+<div class="paragraph">
+<p>In this guide, we use Grafana Loki as the centralized backend for storing and querying application logs, and Grafana as the user interface for visualization.</p>
+</div>
+<div class="paragraph">
+<p>Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of labels (like <code>app</code>, <code>env</code>, or <code>service</code>) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.</p>
+</div>
+<div class="paragraph">
+<p>We chose Loki because it integrates seamlessly into the broader Grafana observability stack, alongside Tempo for distributed tracing and Prometheus for metrics, offering a consistent and unified monitoring experience.</p>
+</div>
+<div class="paragraph">
+<p>We also use Grafana as a unified observability interface where all telemetry data — logs, metrics, and traces — can be visualized and explored in one place.</p>
+</div>
+<div class="paragraph">
+<p>Initially, we connect it to Loki to collect and analyze application logs. In follow-up guides, we will extend the setup to include metrics from Prometheus and distributed traces from Tempo, all integrated into Grafana for a seamless observability experience.</p>
+</div>
+<div class="sect3">
+<h4 id="_setting_up_grafana_loki_and_grafana_using_docker">Setting up Grafana Loki and Grafana using Docker</h4>
+<div class="paragraph">
+<p>We run Loki and Grafana locally via Docker for centralized logging and visualization.</p>
+</div>
+<div class="paragraph">
+<p>A minimal setup for running both Loki and Grafana using Docker is provided below.</p>
+</div>
+<div class="listingblock">
+<div class="title">docker-compose.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">loki:
+  image: grafana/loki:3.4
+
+grafana:
+  image: grafana/grafana:11.6.0
+  ports:
+    - "3000:3000"
+  volumes:
+    - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/grafana-datasources.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We also provision Grafana with a data source configuration that connects it automatically to Loki:</p>
+</div>
+<div class="listingblock">
+<div class="title">grafana-datasources.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: 1
+
+datasources:
+
+  - name: Loki
+    type: loki
+    uid: loki
+    url: http://loki:3100</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To start the infrastructure, simply run the following command from the project root:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">docker compose -f docker/docker-compose.yaml up -d</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With Grafana and Loki running, we can now start forwarding logs from our applications into the centralized logging system.</p>
+</div>
+<div class="paragraph">
+<p>To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="open-telemetry">OpenTelemetry</h3>
 <div class="paragraph">
-<p>Explanation of the OpenTelemetry project, its role in observability, and how it helps in exporting and collecting logs from applications.</p>
+<p>OpenTelemetry is an open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.</p>
+</div>
+<div class="paragraph">
+<p>In this guide, OpenTelemetry is mainly relevant as the mechanism we use to transport logs from the applications to the centralized backend. We use the <strong>OpenTelemetry Collector</strong> as an intermediary: it receives telemetry data from the applications and forwards it to Grafana Loki. This approach decouples the applications from the backend and gives flexibility to switch or extend targets easily.</p>
+</div>
+<div class="paragraph">
+<p>Communication happens via the <strong>OpenTelemetry Protocol (OTLP)</strong>, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.</p>
+</div>
+<div class="sect3">
+<h4 id="_opentelemetry_collector_setup">OpenTelemetry Collector Setup</h4>
+<div class="paragraph">
+<p>We use the OpenTelemetry Collector to receive logs via OTLP and forward them to Grafana Loki.</p>
+</div>
+<div class="paragraph">
+<p>Thanks to the standardized OTLP format, the setup remains flexible and can easily be extended to send telemetry data to other observability backends if needed.</p>
+</div>
+<div class="paragraph">
+<p>We run the OpenTelemetry Collector as a Docker container. The <code>docker-compose.yaml</code> contains the necessary definition:</p>
+</div>
+<div class="listingblock">
+<div class="title">docker-compose.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">otel-collector:
+  image: otel/opentelemetry-collector-contrib:0.123.0
+  ports:
+    - "4318:4318"
+  volumes:
+    - ./otelcol-config.yaml:/config.yaml
+  command:
+    - --config=file:/config.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The OpenTelemetry Collector is configured using a YAML file (<code>otelcol-config.yaml</code>). We configure it to receive logs over OTLP (on port <code>4318</code>), process them in batches, and export them to Grafana Loki.</p>
+</div>
+<div class="listingblock">
+<div class="title">otelcol-config.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml"># tag::
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [loki]</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="spring-boot-actuator-open-telemetry-integration">Spring Boot Actuator and OpenTelemetry Integration</h3>
 <div class="paragraph">
-<p>Overview of how Spring Boot Actuator exposes logs and metrics, and how the OpenTelemetry Collector consumes and processes them.</p>
+<p>We use Spring Boot Actuator as the main way to expose operational data from our applications. Actuator provides a set of ready-made endpoints like <code>/health</code>, <code>/metrics</code>, and <code>/loggers</code>, which can be used for monitoring and management purposes — though in this guide, our focus is specifically on logging.</p>
+</div>
+<div class="paragraph">
+<p>More importantly, Actuator integrates with <a href="https://micrometer.io">Micrometer</a>, a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.</p>
+</div>
+<div class="paragraph">
+<p>For log collection, we extend Actuator&#8217;s capabilities by wiring the logging system to the OpenTelemetry Collector using the OpenTelemetry Logback Appender. This allows us to export structured logs from the application in the OpenTelemetry Protocol (OTLP) format, ready to be picked up by the centralized collector.</p>
+</div>
+<div class="paragraph">
+<p>In this part of the guide, we focus on configuring structured logging with OpenTelemetry. In later parts, we will build on the same foundation to add metrics and distributed tracing.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="spring-boot-actuator-open-telemetry-integration">Spring Boot Actuator and Application Setup</h3>
+<div class="paragraph">
+<p>We configure our applications to export structured logs directly to the OpenTelemetry Collector using Spring Boot Actuator and Micrometer.</p>
+</div>
+<div class="sect3">
+<h4 id="_dependencies">Dependencies</h4>
+<div class="paragraph">
+<p>First, we add the required dependencies to the <code>build.gradle</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.gradle</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-gradle hljs" data-lang="gradle">// actuator includes also micrometer core &amp; micrometer observation
+implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+// This appender sends log events to the OpenTelemetry Collector via OTLP.
+implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.1-alpha'
+
+// Required to export log records via the OTLP protocol to the OpenTelemetry Collector.
+implementation 'io.opentelemetry:opentelemetry-exporter-otlp'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This brings in:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Spring Boot Actuator (includes Micrometer core and observation support),</p>
+</li>
+<li>
+<p>OpenTelemetry Logback Appender for structured log export,</p>
+</li>
+<li>
+<p>OpenTelemetry OTLP Exporter to transmit logs.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_application_configuration">Application Configuration</h4>
+<div class="paragraph">
+<p>Next, we define the OTLP logging endpoint in the application&#8217;s <code>application.properties</code>:</p>
+</div>
+<div class="listingblock">
+<div class="title">application.properties</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-properties hljs" data-lang="properties"></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This configuration points the log output to the OpenTelemetry Collector running locally.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_logback_setup">Logback Setup</h4>
+<div class="paragraph">
+<p>We update the logging configuration (<code>logback-spring.xml</code>) to forward log events both to the console and to OpenTelemetry:</p>
+</div>
+<div class="listingblock">
+<div class="title">logback-spring.xml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-xml hljs" data-lang="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;configuration&gt;
+
+    &lt;!-- Console Appender:
+         Outputs logs to the console. The pattern includes a timestamp, thread,
+         log level, logger name, and prints all MDC (Mapped Diagnostic Context) key/value pairs using %X.
+    --&gt;
+    &lt;appender name="console" class="ch.qos.logback.core.ConsoleAppender"&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;
+                %d{HH:mm:ss.SSS} [%thread] [%X] %-5level %logger{36} - %msg%n
+            &lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- OpenTelemetry Appender:
+         Sends log events to an OpenTelemetry Collector with all MDC attributes are captured.
+
+         OpenTelemetryAppender automatically puts trace_id and span_id into the logs so that it is possible to correlate them with traces
+    --&gt;
+    &lt;appender name="OpenTelemetry" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"&gt;
+        &lt;captureMdcAttributes&gt;*&lt;/captureMdcAttributes&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- Root Logger:
+         Configures logging at INFO level and routes log events to both the console and OpenTelemetry appenders.
+    --&gt;
+    &lt;root level="INFO"&gt;
+        &lt;appender-ref ref="console"/&gt;
+        &lt;appender-ref ref="OpenTelemetry"/&gt;
+    &lt;/root&gt;
+
+&lt;/configuration&gt;</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>console</code> appender writes logs to the console.</p>
+</li>
+<li>
+<p>The <code>OpenTelemetry</code> appender captures structured log entries, including MDC attributes like trace IDs.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_initializing_the_opentelemetry_appender">Initializing the OpenTelemetry Appender</h4>
+<div class="paragraph">
+<p>Finally, we initialize the OpenTelemetry Logback Appender at application startup to connect it properly with the OpenTelemetry SDK:</p>
+</div>
+<div class="listingblock">
+<div class="title">OpenTelemetryAppenderInitializer.java</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">package io.jmix.petclinic.portal.config;
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
+
+/**
+ * "The OpenTelemetryAppender for both Logback and Log4j requires access to an OpenTelemetry instance to function properly.
+ * This instance must be set programmatically during application startup."
+ * See also logback-spring.xml:
+ *     &lt;appender name="OpenTelemetry" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender" /&gt;
+ * see: &lt;a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html"&gt;Spring Boot Actuator Loggers&lt;/a&gt;
+ */
+@Component
+class OpenTelemetryAppenderInitializer implements InitializingBean {
+
+	private final OpenTelemetry openTelemetry;
+
+	OpenTelemetryAppenderInitializer(OpenTelemetry openTelemetry) {
+		this.openTelemetry = openTelemetry;
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		OpenTelemetryAppender.install(this.openTelemetry);
+	}
+
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this setup in place, all application logs are structured, enriched with contextual metadata, and sent directly to the OpenTelemetry Collector via OTLP.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1023,7 +1365,7 @@ private void addPetCard(Pet pet) {
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2025-04-26 09:49:54 +0200
+Last updated 2025-04-27 12:46:42 +0200
 </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.18.3/highlight.min.js"></script>

@@ -1,8 +1,0 @@
-apiVersion: 1
-
-providers:
-  - name: 'Spring HTTP'
-    type: file
-    options:
-      path: /etc/grafana/spring-http-dashboard.json
-      foldersFromFilesStructure: false

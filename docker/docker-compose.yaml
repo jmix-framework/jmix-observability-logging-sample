@@ -28,11 +28,6 @@ services:
       MANAGEMENT_OTLP_LOGGING_ENDPOINT: http://otel-collector:4318/v1/logs
     ports:
       - "8080:8080"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
   petclinic-portal:
     profiles: [app]
@@ -40,8 +35,6 @@ services:
       context: ../jmix-petclinic-portal
     depends_on:
       postgres:
-        condition: service_healthy
-      petclinic:
         condition: service_healthy
     environment:
       MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/portal
@@ -54,33 +47,21 @@ services:
       MANAGEMENT_OTLP_LOGGING_ENDPOINT: http://otel-collector:4318/v1/logs
     ports:
       - "8081:8081"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q --spider http://localhost:8081/actuator/health" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
+  # tag::otel-collector[]
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.123.0
     ports:
-      - "4317:4317"
       - "4318:4318"
-      - "13133:13133"
     volumes:
       - ./otelcol-config.yaml:/config.yaml
     command:
       - --config=file:/config.yaml
+  # end::otel-collector[]
 
+  # tag::loki[]
   loki:
     image: grafana/loki:3.4
-    ports:
-      - "3100:3100"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3100/ready" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
 
   grafana:
     image: grafana/grafana:11.6.0
@@ -88,14 +69,7 @@ services:
       - "3000:3000"
     volumes:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/grafana-datasources.yaml
-      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/grafana-dashboards.yaml
-      - ./spring-http-dashboard.json:/etc/grafana/spring-http-dashboard.json
-    healthcheck:
-      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3000/api/health" ]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
+    # end::loki[]
 
 networks:
   default:
