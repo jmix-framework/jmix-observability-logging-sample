@@ -172,7 +172,7 @@ NOTE: To see how to build such consumer-facing applications with Jmix in more de
 https://www.youtube.com/watch?v=roBa0Qb8R2E[Building Consumer-Facing Apps with Jmix^]
 
 [[introduction-to-observability]]
-=== Introduction to Observability
+== Introduction to Observability
 
 Observability is the ability to understand the internal state of a system based on the data it produces.
 
@@ -186,12 +186,12 @@ Observability is typically built around three main pillars:
 
 - **Logs**: Structured or unstructured records of events that have occurred within the system.
 - **Metrics**: Numerical data that represent measurements over time, such as response times, error rates, or system load.
-- **Traces**: Records of the flow of a request as it passes through different parts of the system.
+- **Traces**: Records of the request-flow as it passes through different parts of the system.
 
 In this guide, we focus primarily on logging. We will see how to use structured logs and centralize logging across multiple applications to improve monitoring, troubleshooting, and overall system understanding.
 
 [[centralized-logging]]
-=== Centralized Logging
+== Centralized Logging
 
 Centralized logging refers to the practice of collecting log data from multiple applications and systems into a single, centralized location for analysis and monitoring. This approach simplifies troubleshooting, enhances visibility across distributed systems, and enables proactive issue detection.
 
@@ -200,7 +200,7 @@ There are various ways to implement centralized logging. Many cloud providers of
 Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization. Centralized logging significantly improves system observability by enabling cross-application search, building dashboards, and detecting patterns or anomalies across the entire environment.
 
 [[structured-logging]]
-=== Structured Logging
+== Structured Logging
 
 Structured logging refers to writing logs in a machine-readable format such as JSON or key-value pairs, rather than plain text messages. This makes it significantly easier for centralized logging systems to parse, index, and query logs efficiently.
 
@@ -247,7 +247,8 @@ We also use Grafana as a unified observability interface where all telemetry dat
 
 Initially, we connect it to Loki to collect and analyze application logs. In follow-up guides, we will extend the setup to include metrics from Prometheus and distributed traces from Tempo, all integrated into Grafana for a seamless observability experience.
 
-==== Setting up Grafana Loki and Grafana using Docker
+[[setting-up-using-docker]]
+==== Setting up using Docker
 
 We run Loki and Grafana locally via Docker for centralized logging and visualization.
 
@@ -267,19 +268,12 @@ We also provision Grafana with a data source configuration that connects it auto
 include::example$/docker/grafana-datasources.yaml[tags=start;loki-only]
 ----
 
-To start the infrastructure, simply run the following command from the project root:
-
-[source,shell]
-----
-docker compose -f docker/docker-compose.yaml up -d
-----
-
-With Grafana and Loki running, we can now start forwarding logs from our applications into the centralized logging system.
+We are now ready to start forwarding logs from our applications into the Loki.
 
 To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector.
 
 [[open-telemetry]]
-=== OpenTelemetry
+== OpenTelemetry
 
 OpenTelemetry is an open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.
 
@@ -287,7 +281,8 @@ In this guide, OpenTelemetry is mainly relevant as the mechanism we use to trans
 
 Communication happens via the **OpenTelemetry Protocol (OTLP)**, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.
 
-==== OpenTelemetry Collector Setup
+[[open-telemetry-collector-setup]]
+=== OpenTelemetry Collector Setup
 
 We use the OpenTelemetry Collector to receive logs via OTLP and forward them to Grafana Loki.
 
@@ -309,23 +304,16 @@ The OpenTelemetry Collector is configured using a YAML file (`otelcol-config.yam
 include::example$/docker/otelcol-config.yaml[]
 ----
 
-[[spring-boot-actuator-open-telemetry-integration]]
-=== Spring Boot Actuator and OpenTelemetry Integration
+[[spring-boot-actuator]]
+== Spring Boot Actuator
 
-We use Spring Boot Actuator as the main way to expose operational data from our applications. Actuator provides a set of ready-made endpoints like `/health`, `/metrics`, and `/loggers`, which can be used for monitoring and management purposes — though in this guide, our focus is specifically on logging.
+We use Spring Boot Actuator as the main way to expose operational data from our applications.
 
-More importantly, Actuator integrates with https://micrometer.io[Micrometer], a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.
-
-For log collection, we extend Actuator's capabilities by wiring the logging system to the OpenTelemetry Collector using the OpenTelemetry Logback Appender. This allows us to export structured logs from the application in the OpenTelemetry Protocol (OTLP) format, ready to be picked up by the centralized collector.
+Although Actuator has a lot of features, the most relevant functionality Actuator brings is the integration with https://micrometer.io[Micrometer], a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.
 
 In this part of the guide, we focus on configuring structured logging with OpenTelemetry. In later parts, we will build on the same foundation to add metrics and distributed tracing.
 
-[[spring-boot-actuator-open-telemetry-integration]]
-=== Spring Boot Actuator and Application Setup
-
-We configure our applications to export structured logs directly to the OpenTelemetry Collector using Spring Boot Actuator and Micrometer.
-
-==== Dependencies
+For log collection, we configure the OpenTelemetry OTLP exporter to work together with Spring Boot Actuator and the logging system. The application itself sends structured logs directly to the OpenTelemetry Collector using the OpenTelemetry Protocol (OTLP), where they are further processed and forwarded to Grafana Loki.
 
 First, we add the required dependencies to the `build.gradle`:
 
@@ -343,10 +331,7 @@ Next, we define the OTLP logging endpoint in the application's `application.prop
 include::example$/portal/src/main/resources/application.properties[tags=logging-export]
 ----
 
-This configuration points the log output to the OpenTelemetry Collector running locally.
-
-
-Additionally we need to create the logging configuration (`logback-spring.xml`) to forward log events both to the console and to OpenTelemetry:
+This configuration points the log output to the OpenTelemetry Collector running locally. Additionally, we need to create the logging configuration (`logback-spring.xml`) to forward log events both to the console and to the OpenTelemetry appender:
 
 .logback-spring.xml
 [source,xml,indent=0]
@@ -362,7 +347,25 @@ Finally, we initialize the OpenTelemetry Logback Appender at application startup
 include::example$/portal/src/main/java/io/jmix/petclinic/portal/config/OpenTelemetryAppenderInitializer.java[]
 ----
 
-With this setup in place, all application logs are structured, enriched with contextual metadata, and sent directly to the OpenTelemetry Collector via OTLP.
+With this we configure both the Petclinic and the Petclinic Portal applications to export their structured logs via OTLP. With this setup in place, all application logs are structured and sent directly to the OpenTelemetry Collector.
+
+
+[[putting-it-all-together]]
+== Putting It All Together
+
+With everything configured, it’s time to bring the full observability setup to life.
+
+First, we start the infrastructure components using Docker Compose:
+
+[source,shell]
+----
+docker compose -f docker/docker-compose.yaml up -d
+----
+
+Next, we launch both applications — Petclinic and Petclinic Portal — so they start sending logs to the OpenTelemetry Collector.
+
+With the applications running, we can now open Grafana in the browser (`http://localhost:3000`) and explore the collected logs.
+
 
 [[summary]]
 == Summary
