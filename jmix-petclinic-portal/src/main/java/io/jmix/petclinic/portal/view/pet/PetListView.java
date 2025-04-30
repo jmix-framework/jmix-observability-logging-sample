@@ -14,11 +14,15 @@ import io.jmix.petclinic.portal.entity.Visit;
 import io.jmix.petclinic.portal.view.main.MainView;
 import org.springframework.beans.factory.annotation.Autowired;
 
+// tag::start-class[]
 @Route(value = "pets", layout = MainView.class)
 @ViewController(id = "Pet.list")
 @ViewDescriptor(path = "pet-list-view.xml")
 @DialogMode(width = "50em")
 public class PetListView extends StandardListView<Pet> {
+
+    // ...
+    // end::start-class[]
 
     @ViewComponent
     private HorizontalLayout cardWrapper;
@@ -62,4 +66,6 @@ public class PetListView extends StandardListView<Pet> {
     }
     // end::init-pet-cards[]
 
+// tag::end-class[]
 }
+// end::end-class[]

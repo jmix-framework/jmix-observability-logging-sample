@@ -31,7 +31,7 @@ The main steps covered in this guide are:
 - Configuring the applications to export their logs in a format compatible with the OpenTelemetry Collector.
 
 [[petclinic-portal]]
-=== Petclinic Portal
+== Petclinic Portal
 
 [NOTE]
 ====
@@ -42,16 +42,14 @@ If you are only interested in centralized logging and observability topics, you 
 
 The Petclinic Portal allows pet owners to log in and view their data, including pets, past and upcoming visits, and contact information for the clinic. This functionality is a typical example of a consumer-facing app that offers self-service capabilities while staying connected to a central backend.
 
-image::petclinic-portal-pet-list-view.png[Petclinic Portal Pet List View, link="_images/petclinic-portal-pet-list-view.png"]
+image::petclinic-portal-visit-list-view.png[Petclinic Portal Visit List View, link="_images/petclinic-portal-visit-list-view.png"]
 
-[[petclinic-portal-integration]]
-==== Integration with REST Data Store
+[[petclinic-api-integration]]
+=== Petclinic API Integration
 
-The Jmix REST Data Store provides an easy way to connect two Jmix applications using a REST API. In this setup, the Petclinic Portal fetches data such as `Pet` and `Visit` entities from the Petclinic backend without persisting or managing the data itself.
+The Jmix REST Data Store provides an easy way to connect two Jmix applications using a REST API. The Portal fetches data such as `Pet` and `Visit` entities from the Petclinic backend without persisting or managing the data itself.
 
-By leveraging the REST Data Store, the Petclinic Portal and the Petclinic backend are cleanly separated.
-
-This enables deploying the Portal as an internet-facing application with its own authentication mechanisms, such as OIDC, without exposing the full backend to the internet. Only a minimal, targeted subset of functionality is exported, making it easier to tailor the user experience precisely to the needs of the end users while maintaining a strict separation between core data management and customer-facing operations.
+By splitting things up this way, we can deploy the Portal as a public-facing app with its own login system — like social login. At the same time, we don’t have to expose the full backend to the internet. Instead, we just expose a focused set of features, so users get exactly what they need without opening up the whole system.
 
 ==== Exposing generic REST API in Petclinic
 
@@ -62,9 +60,8 @@ To enable the Petclinic application to expose its data through REST, we first ne
 ----
 include::example$/petclinic/build.gradle[tags=rest-api-dependencies]
 ----
-This will add support for the Jmix Generic REST API and OAuth2 authorization server capabilities to the application.
 
-In order to allow the Petclinic Portal to access the Petclinic backend, we configure an OAuth2 client for the portal in the `application.properties` file of the Petclinic backend.
+To allow the Petclinic Portal to access the Petclinic backend, we configure an OAuth2 client for the portal in the `application.properties` file of the Petclinic backend.
 
 .application.properties
 [source,java,indent=0]
@@ -74,12 +71,10 @@ include::example$/petclinic/src/main/resources/application.properties[tags=jmix-
 
 [NOTE]
 ====
-In this configuration, the Petclinic Portal authenticates as a system client using the `client_credentials` flow.
-
-This avoids the need for creating user accounts in the Petclinic, and instead applies data filtering programmatically within the portal application.
+The Petclinic Portal uses the `client_credentials` OAuth flow. This avoids the need for creating user accounts in the backend, and instead applies data filtering programmatically within the portal application.
 ====
 
-With these configurations, the Jmix Petclinic application now exposes a REST API protected by OAuth2. Let's now look into how to configure the Portal application to use the Petclinic REST API backend.
+With these settings in place, the Jmix Petclinic application now exposes a REST API protected by OAuth2. Let's look into how to configure the Portal application to use the Petclinic REST API backend.
 
 ==== Connecting Petclinic Portal to the Backend
 
@@ -93,7 +88,7 @@ First, add the following dependencies to the `build.gradle` file of the Petclini
 include::example$/portal/build.gradle[tags=rest-ds-dependencies]
 ----
 
-Next, we need to configure the connection details to the backend Petclinic application in the `application.properties` file:
+Next, we need to configure the connection details of the client credentials flow in `application.properties`:
 
 .application.properties
 [source,java,indent=0]
@@ -101,15 +96,9 @@ Next, we need to configure the connection details to the backend Petclinic appli
 include::example$/portal/src/main/resources/application.properties[tags=jmix-rest-ds-connectivity]
 ----
 
-This configuration does the following:
+To connect to the Petclinic backend, we configure a custom REST data store named `petclinic` in the Portal application. As the datastore descriptor we use the `RestDataStoreDescriptor`, which requires authentication via OAuth2 client credentials. Once configured, the portal can interact with exposed entities from the backend securely and without managing the data itself.
 
-- Registers an additional data store named `petclinic` that uses the Jmix REST Data Store (`RestDataStoreDescriptor`).
-- Defines the connection URL (`baseUrl`) for accessing the Petclinic backend REST API.
-- Configures the OAuth2 `clientId` and `clientSecret` to authenticate the portal application against the backend.
-
-Once the connection to the Petclinic backend is configured, the portal application can interact with entities exposed by the REST API.
-
-We create a Pet Jmix DTO Entity in the portal application that represents the data structure we need from the backend. The DTO entity must be annotated appropriately to link it to the backend system.
+We create a Pet Jmix DTO Entity in the portal application that represents the data structure we expect from the backend.
 
 .Pet.java
 [source,java,indent=0]
@@ -119,9 +108,9 @@ include::example$/portal/src/main/java/io/jmix/petclinic/portal/entity/Pet.java[
 <1> `@Store(name = "petclinic")` — specifies that the entity belongs to the additional `petclinic` data store.
 <2> `@RestDataStoreEntity(remoteName = "petclinic_Pet")` — maps the DTO to the corresponding entity name exposed by the petclinic REST API.
 
-After creating and connecting the DTO entities, we can use them like any other entities within Jmix views.
+After creating and connecting the DTO entities, we can use them like any other persistent entities within Jmix views.
 
-We define a data loader in the Portal `pet-list-view.xml` to load `Pet` entities. When using the Jmix REST Data Store, the data loader works slightly differently compared to standard database loaders: it uses a JSON-based query format instead of JPQL.
+We define a data loader in the Portal `pet-list-view.xml` to load `Pet` entities. When using the Jmix REST Data Store, the data loader works slightly differently compared to standard database loaders: it uses a JSON-based query format instead of JPQL, as the query is sent directly to the Petclinic backend via its REST API.
 
 Here’s an example of how the `Pet` entities are loaded for the currently logged-in owner:
 
@@ -131,18 +120,16 @@ Here’s an example of how the `Pet` entities are loaded for the currently logge
 include::example$/portal/src/main/resources/io/jmix/petclinic/portal/view/pet/pet-list-view.xml[tags=loading-pets]
 ----
 
-For more information on how to define queries and filters when using the Jmix REST Data Store, refer to: xref:rest-ds:index.adoc#using-query-in-view-xml[].
+For more information on how to define queries and filters when using the Jmix REST data store, refer to: xref:rest-ds:index.adoc#using-query-in-view-xml[REST data store: Using Query in View XML].
 
 [[petclinic-portal-custom-layout]]
-==== Portal Custom Layout
+=== Portal Custom Layout
 
-To meet the requirements of a consumer-facing application, the Petclinic Portal uses a custom layout that goes beyond standard Jmix UI components. Cards, color coding, and visual grouping of data are implemented to give users a modern and intuitive experience.
+The Petclinic Portal uses a fully customized layout that intentionally deviates from the typical look of a business application. Instead of relying on standard Jmix or Vaadin UI components, the layout mimics elements of modern websites — including scrollable views, card-based presentation, and visually grouped sections.
 
-image::petclinic-portal-visit-list-view.png[Petclinic Portal Visit List View, link="_images/petclinic-portal-visit-list-view.png"]
+image::petclinic-portal-pet-list-view.png[Petclinic Portal Pet List View, link="_images/petclinic-portal-pet-list-view.png"]
 
-image::petclinic-portal-visit-detail-view.png[Petclinic Portal Visit Detail View, link="_images/petclinic-portal-visit-detail-view.png"]
-
-We use a Fragment to represent each `Pet` entity visually as a card component. Each card displays key information such as the pet’s name, type, birthdate, and offers a button to navigate to the detail view.
+We use a xref:flow-ui:fragments/fragments.adoc[Fragment] to represent each `Pet` entity visually as a card component. Each card displays key information such as the pet’s name, type, birthdate, and offers a button to navigate to the detail view.
 
 .pet-card.xml
 [source,xml,indent=0]
@@ -150,7 +137,7 @@ We use a Fragment to represent each `Pet` entity visually as a card component. E
 include::example$/portal/src/main/resources/io/jmix/petclinic/portal/view/pet/pet-card.xml[]
 ----
 
-The visual appearance of the cards is defined using a small set of custom CSS classes that extend and complement the standard Lumo theme. These styles are organized in a dedicated file under `src/main/frontend/themes/jmix-petclinic-portal/view/pet-card.css`:
+The visual appearance of the cards is defined using a custom CSS file. While it reuses selected Lumo theme variables for consistency (e.g., spacing, colors, border radius), the styles themselves are custom-defined and not based on Vaadin components. Let's create a dedicated file under `src/main/frontend/themes/jmix-petclinic-portal/view/pet-card.css`:
 
 .pet-card.css
 [source,css,indent=0]
@@ -162,14 +149,20 @@ Cards are dynamically created when the `Pet` data is loaded into the Pet List Vi
 
 This event listener allows us to rebuild the card layout each time the set of loaded pets changes.
 
-.PetListView.java (excerpt)
+.PetListView.java
 [source,java,indent=0]
 ----
-include::example$/portal/src/main/java/io/jmix/petclinic/portal/view/pet/PetListView.java[tags=init-pet-cards]
+include::example$/portal/src/main/java/io/jmix/petclinic/portal/view/pet/PetListView.java[tags=start-class;init-pet-cards;end-class]
 ----
 
-NOTE: To see how to build such consumer-facing applications with Jmix in more detail, watch the following video:
-https://www.youtube.com/watch?v=roBa0Qb8R2E[Building Consumer-Facing Apps with Jmix^]
+[NOTE]
+====
+To learn more about how to build consumer-facing applications with Jmix, watch the webinar
+https://www.youtube.com/watch?v=roBa0Qb8R2E[Making Web UI in Java Fancy: Fast Prototype Consumer Facing App on Jmix^]. It walks through the full process of building custom UIs like the Petclinic Portal, including layout, design, and REST integration.
+
+video::roBa0Qb8R2E[youtube,width=1280,height=600]
+====
+
 
 [[introduction-to-observability]]
 == Introduction to Observability
@@ -200,7 +193,7 @@ There are various ways to implement centralized logging. Many cloud providers of
 Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization. Centralized logging significantly improves system observability by enabling cross-application search, building dashboards, and detecting patterns or anomalies across the entire environment.
 
 [[structured-logging]]
-== Structured Logging
+=== Structured Logging
 
 Structured logging refers to writing logs in a machine-readable format such as JSON or key-value pairs, rather than plain text messages. This makes it significantly easier for centralized logging systems to parse, index, and query logs efficiently.
 
@@ -235,9 +228,9 @@ In the unstructured format, important details like the `userId` are missing, and
 To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.
 
 [[grafana-loki]]
-=== Grafana Loki and Grafana UI
+=== Loki and Grafana
 
-In this guide, we use Grafana Loki as the centralized backend for storing and querying application logs, and Grafana as the user interface for visualization.
+In this guide, we use https://grafana.com/oss/loki/[Loki] as the centralized backend for storing and querying application logs, and https://grafana.com/grafana/[Grafana] as the user interface for visualization.
 
 Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of labels (like `app`, `env`, or `service`) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.
 
@@ -281,8 +274,8 @@ In this guide, OpenTelemetry is mainly relevant as the mechanism we use to trans
 
 Communication happens via the **OpenTelemetry Protocol (OTLP)**, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.
 
-[[open-telemetry-collector-setup]]
-=== OpenTelemetry Collector Setup
+[[open-telemetry-collector]]
+=== OpenTelemetry Collector
 
 We use the OpenTelemetry Collector to receive logs via OTLP and forward them to Grafana Loki.
 
