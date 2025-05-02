@@ -163,11 +163,15 @@ https://www.youtube.com/watch?v=roBa0Qb8R2E[Making Web UI in Java Fancy: Fast Pr
 video::roBa0Qb8R2E[youtube,width=1280,height=600]
 ====
 
+With both the Petclinic backend and the Portal application up and running, we now turn our attention to observability. Specifically, we want to see how to equip both applications with centralized logging.
+
 
 [[introduction-to-observability]]
 == Introduction to Observability
 
-Observability is the ability to understand the internal state of a system based on the data it produces.
+Before diving into the technical setup, let’s take a step back and look at the broader concept of observability — what it means in practice and why it’s especially relevant in distributed systems.
+
+Observability is the ability to understand the internal state of a system based on the telemetry data it produces.
 
 While observability is beneficial for any application, it becomes especially critical in distributed systems and microservice architectures, where system complexity increases and understanding behavior across multiple components becomes significantly more challenging.
 
@@ -190,14 +194,16 @@ Centralized logging refers to the practice of collecting log data from multiple 
 
 There are various ways to implement centralized logging. Many cloud providers offer managed logging services, such as AWS CloudWatch, Google Cloud Logging, or Microsoft Azure Monitor, which automatically collect logs from infrastructure and applications. Additionally, there are SaaS-based observability platforms like Datadog, which provide extensive logging, monitoring, and alerting capabilities as a service. For teams that prefer to manage their own infrastructure, self-hosted solutions such as the Elastic Stack (formerly ELK Stack) or Grafana Loki are popular options. These solutions allow full control over data retention, cost management, and system integration.
 
-Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization. Centralized logging significantly improves system observability by enabling cross-application search, building dashboards, and detecting patterns or anomalies across the entire environment.
+Despite their differences, centralized logging systems share a common architecture. Typically, one or more components are responsible for receiving log data from applications (collectors or agents), and another component stores and indexes the logs for querying and visualization.
+
+The main benefit of centralized logging is that it brings together logs from multiple independent applications into a single place. Instead of manually digging through separate log files, operators and developers can search and analyze logs centrally — making troubleshooting and system monitoring much more efficient.
 
 [[structured-logging]]
 === Structured Logging
 
 Structured logging refers to writing logs in a machine-readable format such as JSON or key-value pairs, rather than plain text messages. This makes it significantly easier for centralized logging systems to parse, index, and query logs efficiently.
 
-With structured logs, fields like `userId`, `petId`, or `errorType` can be used directly in queries, enabling fast and precise troubleshooting. It also supports advanced use cases such as automated detection and masking of sensitive information (PII), building dynamic dashboards, and correlating events across distributed systems.
+With structured logs, fields like `userId`, `petId`, or `errorType` can be used directly in queries, enabling fast and precise troubleshooting. It also supports advanced use cases such as automated detection and masking of sensitive information (PII) and correlating events across distributed systems.
 
 Here’s an example of a structured log entry in JSON format:
 
@@ -220,21 +226,25 @@ In contrast, a traditional log entry using a default Logback console appender mi
 
 [source,text]
 ----
-2025-04-26 08:45:30 ERROR  [http-nio-8080-exec-7] io.jmix.petclinic.portal.view.pet.PetListView - Pet name must not be empty for Pet: 5e8b6c45
+2025-04-26 08:45:30 ERROR  [http-nio-8080-exec-7] io.jmix.petclinic.portal.view.pet.PetListView - Pet name must not be empty for Pet with ID: 5e8b6c45-0c12-4f0f-bc47-1a6a5d2cf08d
 ----
 
-In the unstructured format, important details like the `userId` are missing, and the `petId` is embedded inside the text, making it difficult for automated systems to extract and use this information reliably.
+In the unstructured format, the `petId` is embedded somewhere in the message string — for example after a colon, or within a phrase like 'with ID'. Because log messages vary widely in wording and structure, it's nearly impossible for automated systems to reliably extract such values from plain text logs.
+
+With structured logging, fields like `petId` are explicitly available, so we can filter and search for all logs related to a specific entity — something that’s critical for debugging and monitoring distributed systems.
 
 To fully benefit from centralized logging, applications should produce structured logs natively. Structured data makes it possible to query specific fields and build rich, user-specific dashboards across distributed systems.
+
+In our petclinic example, we will use OpenTelemetry in combination with Spring Boot Actuator to export structured logs from the applications and send them to the centralized logging backend.
 
 [[grafana-loki]]
 === Loki and Grafana
 
 In this guide, we use https://grafana.com/oss/loki/[Loki] as the centralized backend for storing and querying application logs, and https://grafana.com/grafana/[Grafana] as the user interface for visualization.
 
-Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of labels (like `app`, `env`, or `service`) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.
+Unlike the Elastic Stack (ELK), which indexes the full content of log messages, Loki only indexes a small set of pre-defined labels (like `app`, `env`, or `service`) and stores the actual log content separately. This design makes Loki much more efficient in terms of storage and memory usage, while still enabling powerful filtering and search capabilities for common queries.
 
-We chose Loki because it integrates seamlessly into the broader Grafana observability stack, alongside Tempo for distributed tracing and Prometheus for metrics, offering a consistent and unified monitoring experience.
+For the purpose of this guide we chose Loki because it integrates seamlessly into the broader Grafana observability stack, alongside Tempo for distributed tracing and Prometheus for metrics, offering a consistent and unified monitoring experience.
 
 We also use Grafana as a unified observability interface where all telemetry data — logs, metrics, and traces — can be visualized and explored in one place.
 
@@ -243,7 +253,7 @@ Initially, we connect it to Loki to collect and analyze application logs. In fol
 [[setting-up-using-docker]]
 ==== Setting up using Docker
 
-We run Loki and Grafana locally via Docker for centralized logging and visualization.
+Let's run Loki and Grafana locally via Docker for centralized logging and visualization.
 
 A minimal setup for running both Loki and Grafana using Docker is provided below.
 
@@ -253,7 +263,7 @@ A minimal setup for running both Loki and Grafana using Docker is provided below
 include::example$/docker/docker-compose.yaml[tags=loki]
 ----
 
-We also provision Grafana with a data source configuration that connects it automatically to Loki:
+Additionally, we need to configure Grafana with a data source configuration that connects it automatically to Loki:
 
 .grafana-datasources.yaml
 [source,yaml,indent=0]
@@ -263,25 +273,23 @@ include::example$/docker/grafana-datasources.yaml[tags=start;loki-only]
 
 We are now ready to start forwarding logs from our applications into the Loki.
 
-To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector.
+To do this, we need an intermediate component that receives the logs and forwards them to Loki: the OpenTelemetry Collector. But before looking into this, let's take a broader look at what the OpenTelemetry project is all about.
 
 [[open-telemetry]]
 == OpenTelemetry
 
-OpenTelemetry is an open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.
+OpenTelemetry is an vendor-neutral open-source project that defines standards and components for collecting, transmitting, and processing telemetry data such as logs, metrics, and traces.
 
-In this guide, OpenTelemetry is mainly relevant as the mechanism we use to transport logs from the applications to the centralized backend. We use the **OpenTelemetry Collector** as an intermediary: it receives telemetry data from the applications and forwards it to Grafana Loki. This approach decouples the applications from the backend and gives flexibility to switch or extend targets easily.
+In this guide, OpenTelemetry is mainly relevant as the mechanism we use to transport logs from the applications to the centralized backend. We use the OpenTelemetry Collector as an intermediary: it receives telemetry data from the applications and forwards it to Grafana Loki. This approach decouples the applications from the backend and gives flexibility to switch or extend targets easily.
 
-Communication happens via the **OpenTelemetry Protocol (OTLP)**, a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. OTLP is widely supported by many observability platforms, both self-hosted and cloud-based, allowing us to remain flexible and independent of a specific backend technology.
+Communication happens via the OpenTelemetry Protocol (OTLP), a standardized and vendor-neutral protocol for transmitting logs, metrics, and traces. In our example, we use the Grafana stack as the target backend — but since OTLP is widely supported, this setup can just as easily be used with other observability tools and vendors. This keeps the applications decoupled from any specific backend technology and ensures long-term flexibility.
 
 [[open-telemetry-collector]]
 === OpenTelemetry Collector
 
-We use the OpenTelemetry Collector to receive logs via OTLP and forward them to Grafana Loki.
+As already mentioned before, we use the OpenTelemetry Collector to receive logs via OTLP from both petclinic applications and forward them to Grafana Loki.
 
-Thanks to the standardized OTLP format, the setup remains flexible and can easily be extended to send telemetry data to other observability backends if needed.
-
-We run the OpenTelemetry Collector as a Docker container. The `docker-compose.yaml` contains the necessary definition:
+Similarly to the logging backend, the OpenTelemetry Collector can run as a Docker container. The `docker-compose.yaml` contains the necessary definition:
 
 .docker-compose.yaml
 [source,yaml,indent=0]
@@ -289,7 +297,7 @@ We run the OpenTelemetry Collector as a Docker container. The `docker-compose.ya
 include::example$/docker/docker-compose.yaml[tags=otel-collector]
 ----
 
-The OpenTelemetry Collector is configured using a YAML file (`otelcol-config.yaml`). We configure it to receive logs over OTLP (on port `4318`), process them in batches, and export them to Grafana Loki.
+The configuration file (`otelcol-config.yaml`) looks like this:
 
 .otelcol-config.yaml
 [source,yaml,indent=0]
@@ -297,18 +305,24 @@ The OpenTelemetry Collector is configured using a YAML file (`otelcol-config.yam
 include::example$/docker/otelcol-config.yaml[]
 ----
 
+We configure it to receive logs over OTLP (on port `4318`), process them in batches, and export them to Grafana Loki. Since the collector and Loki service run in the same Docker network, the `loki` hostname is resolvable and used as the endpoint target.
+
+With this, our infrastructure setup is complete — now we can configure the applications to emit logs into loki.
+
 [[spring-boot-actuator]]
 == Spring Boot Actuator
 
+There are multiple ways to forward logs to the OpenTelemetry Collector. For example, OpenTelemetry provides a https://opentelemetry.io/docs/zero-code/java/spring-boot-starter/[Spring Boot Starter] that can be used to integrate logging and tracing directly. Alternatively, one could use sidecar agents or log collectors that forward container stdout logs to the collector.
+
 We use Spring Boot Actuator as the main way to expose operational data from our applications.
 
-Although Actuator has a lot of features, the most relevant functionality Actuator brings is the integration with https://micrometer.io[Micrometer], a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.
+Although Actuator has a lot of features, the most relevant functionality Actuator brings for observability is the integration with https://micrometer.io[Micrometer], a metrics and observation library that enables applications to export telemetry data such as metrics and traces. This integration forms the basis for structured telemetry collection in Spring Boot applications.
 
-In this part of the guide, we focus on configuring structured logging with OpenTelemetry. In later parts, we will build on the same foundation to add metrics and distributed tracing.
+In this part of the guide, we focus on configuring structured logging. In later parts, we will build on the same foundation to add metrics and distributed tracing.
 
 For log collection, we configure the OpenTelemetry OTLP exporter to work together with Spring Boot Actuator and the logging system. The application itself sends structured logs directly to the OpenTelemetry Collector using the OpenTelemetry Protocol (OTLP), where they are further processed and forwarded to Grafana Loki.
 
-First, we add the required dependencies to the `build.gradle`:
+First, let's add the required dependencies to the `build.gradle`:
 
 .build.gradle
 [source,gradle,indent=0]
@@ -340,11 +354,11 @@ Finally, we initialize the OpenTelemetry Logback Appender at application startup
 include::example$/portal/src/main/java/io/jmix/petclinic/portal/config/OpenTelemetryAppenderInitializer.java[]
 ----
 
-With this we configure both the Petclinic and the Petclinic Portal applications to export their structured logs via OTLP. With this setup in place, all application logs are structured and sent directly to the OpenTelemetry Collector.
+With this configuration, both the Petclinic and the Petclinic Portal applications export their structured logs via OTLP. All application logs are now structured and sent directly to the OpenTelemetry Collector.
 
 
-[[putting-it-all-together]]
-== Putting It All Together
+[[observability-in-action]]
+== Observability in Action
 
 With everything configured, it’s time to bring the full observability setup to life.
 

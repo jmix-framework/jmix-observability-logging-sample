@@ -1,4 +1,3 @@
-# tag::
 receivers:
   otlp:
     protocols:
