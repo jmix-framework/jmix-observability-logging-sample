@@ -13,6 +13,7 @@ import io.jmix.petclinic.portal.entity.Visit;
 import io.jmix.petclinic.portal.view.main.MainView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -22,11 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  * The Visit entities are loaded using the standard {@link CollectionLoader} and data container mechanism.
  * These entities are then rendered into a custom card layout using Vaadin components.
  */
+// tag::start-class[]
 @Route(value = "visits", layout = MainView.class)
 @ViewController(id = "Visit.list")
 @ViewDescriptor(path = "visit-list-view.xml")
 @DialogMode(width = "50em")
 public class VisitListView extends StandardListView<Visit> {
+
+    // ...
+    // end::start-class[]
 
     private static final Logger log = LoggerFactory.getLogger(VisitListView.class);
     @ViewComponent
@@ -42,13 +47,16 @@ public class VisitListView extends StandardListView<Visit> {
     @ViewComponent
     private CollectionLoader<Visit> visitsDl;
 
+    // tag::on-init[]
     @Subscribe
     public void onInit(final InitEvent event) {
         String ownerId = currentUser().getOwnerId();
-        log.info("Loading visits for owner: {}", ownerId);
+        MDC.put("ownerId", ownerId);
+        log.info("Loading visits for owner");
 
         visitsDl.setParameter("ownerId", ownerId);
     }
+    // end::on-init[]
 
     private User currentUser() {
         return (User) currentAuthentication.getUser();
@@ -59,6 +67,7 @@ public class VisitListView extends StandardListView<Visit> {
         cardWrapper.removeAll();
         visitsDc.getItems()
                 .forEach(this::addVisitCard);
+        MDC.remove("ownerId");
     }
 
     private void addVisitCard(Visit visit) {
@@ -72,4 +81,6 @@ public class VisitListView extends StandardListView<Visit> {
         cardWrapper.add(visitCard);
     }
 
+// tag::end-class[]
 }
+// end::end-class[]

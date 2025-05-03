@@ -61,10 +61,10 @@ services:
 
   # tag::loki[]
   loki:
-    image: grafana/loki:3.4
+    image: grafana/loki:3.5
 
   grafana:
-    image: grafana/grafana:11.6.0
+    image: grafana/grafana:11.6.1
     ports:
       - "3000:3000"
     volumes:

@@ -371,15 +371,65 @@ docker compose -f docker/docker-compose.yaml up -d
 
 Next, we launch both applications — Petclinic and Petclinic Portal — so they start sending logs to the OpenTelemetry Collector.
 
-With the applications running, we can now open Grafana in the browser (`http://localhost:3000`) and explore the collected logs.
+With the applications running, we can now open Grafana in the browser (`http://localhost:3000` - username: `admin`; password: `admin`) and explore the collected logs.
 
+[[log-overview-in-grafana]]
+=== Log Overview in Grafana
+
+image::grafana-log-overview.png[Grafana Log Overview, link="_images/grafana-log-overview.png"]
+
+The screenshot above shows a unified view in Grafana’s Log UI. Each application appears as a separate service label (`jmix-petclinic` and `jmix-petclinic-portal`). As we can see both applications started logging into loki.
+
+This view highlights one of the key benefits of centralized logging: we can monitor all applications from a single place and quickly switch between them to inspect log streams, without jumping through multiple interfaces or terminals.
+
+If we drill into one of the services, like `jmix-petclinic-portal`, Grafana shows a list of all log entries for that service.
+The active filter at the top indicates that logs are scoped to this specific service (`service_name = jmix-petclinic-portal`).
+We can search for keywords in the logs, apply field-based filters, and inspect individual entries.
+
+image::grafana-log-list-petclinic-portal.png[Grafana Log List Petclinic Portal, link="_images/grafana-log-list-petclinic-portal.png"]
+
+[[inspecting-log-entries]]
+=== Inspecting Log Entries
+
+After getting an overview of all logs per application, we can drill down into the individual log entries to explore the structured data we’ve configured.
+
+The screenshot below shows the details of a specific log line emitted by the `jmix-petclinic-portal` application:
+
+image::grafana-log-detail-petclinic-portal.png[Grafana Log Entry Details, link="_images/grafana-log-detail-petclinic-portal.png"]
+
+We can see the original log message body, along with various fields that were automatically extracted by the logging pipeline. These fields include standard ones like `level`, `service_name`, and `timestamp`, as well as application-specific MDC fields like `attributes_logback_ownerId` and `attributes_logback_jmixUser`.
+
+The `ownerId` field was added in the source code before the log statement using MDC (Mapped Diagnostic Context):
+
+.VisitListView.java
+[source,java,indent=0]
+----
+include::example$/portal/src/main/java/io/jmix/petclinic/portal/view/visit/VisitListView.java[tags=start-class;on-init;end-class]
+----
+
+By adding context such as the current user's ID to each log entry, we enable precise filtering in Grafana — making it much easier to troubleshoot and trace events back to specific users or actions.
+
+To dive deeper into MDC and how to enrich your logs with contextual information, see our introduction guide on logging: xref:application-logging:index.adoc#context-information-in-logs[Application Logging in Jmix: Context Information in Logs].
+
+While centralized logging gives us great visibility into logs across multiple services, we still lack a mechanism to link related log entries across applications. What’s missing is a correlation mechanism that ties together the full execution path of a request.
+
+This is exactly the use case for distributed tracing — a topic we’ll dive into in the next part of this series.
 
 [[summary]]
 == Summary
 
-Two - three paragraphs of summary text
+In this guide, we first created a lightweight, consumer‑facing Petclinic Portal application to sit alongside the classic Petclinic backend, giving us two independent Jmix services to showcase centralized logging across multiple systems. With that pair in place, we then built a complete, end‑to‑end logging pipeline: Docker‑based Grafana Loki for log storage, Grafana for exploration, and an OpenTelemetry Collector that receives OTLP data and forwards it to Loki. Both apps were configured to emit structured logs instead of plain text, giving every entry machine‑readable fields like `service_name`, `attributes_logback_ownerId`, and other custom MDC values.
+
+On the application side we used Spring Boot Actuator, Micrometer, and the OpenTelemetry Logback appender send logs directly to the Collector. Because everything travels over the vendor‑neutral OTLP protocol, the two services stay decoupled from any single observability backend – you can swap Loki for another system (or add metrics and traces later) without touching application code. The guide also showed how to enrich logs with domain context and how Grafana lets you filter instantly on those fields.
+
+Centralized, structured logging gives you a single pane of glass across services, faster troubleshooting, and the foundation for deeper observability. With the logging pipeline in place, you’re ready to layer on distributed tracing and metrics in the next parts of the series – all reusing the same OpenTelemetry stack and the unified Grafana UI.
 
 [[further-information]]
 === Further Information
 
-* xref:data-access:entity-events.adoc[]
+* xref:application-logging-guide:index.adoc[Guide: Application Logging in Jmix]
+* https://grafana.com/docs/grafana/latest/[Grafana Documentation]
+* https://grafana.com/docs/loki/latest/[Loki Documentation]
+* https://opentelemetry.io/docs/collector/[OpenTelemetry Collector]
+* https://docs.spring.io/spring-boot/reference/actuator/index.html[Spring Boot Actuator]
+* https://micrometer.io/[Micrometer]
