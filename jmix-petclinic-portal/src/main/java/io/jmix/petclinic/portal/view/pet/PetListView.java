@@ -14,18 +14,18 @@ import io.jmix.petclinic.portal.entity.Visit;
 import io.jmix.petclinic.portal.view.main.MainView;
 import org.springframework.beans.factory.annotation.Autowired;
 
-// tag::start-class[]
+// tag::pet-cards[]
 @Route(value = "pets", layout = MainView.class)
 @ViewController(id = "Pet.list")
 @ViewDescriptor(path = "pet-list-view.xml")
 @DialogMode(width = "50em")
 public class PetListView extends StandardListView<Pet> {
 
-    // ...
-    // end::start-class[]
-
     @ViewComponent
     private HorizontalLayout cardWrapper;
+    // ...
+
+    // end::pet-cards[]
     @Autowired
     private Fragments fragments;
     @Autowired
@@ -46,7 +46,7 @@ public class PetListView extends StandardListView<Pet> {
         return (User) currentAuthentication.getUser();
     }
 
-    // tag::init-pet-cards[]
+    // tag::pet-cards[]
     @Subscribe(id = "petsDc", target = Target.DATA_CONTAINER)
     public void onPetsDcCollectionChange(final CollectionContainer.CollectionChangeEvent<Visit> event) {
         cardWrapper.removeAll();
@@ -64,8 +64,5 @@ public class PetListView extends StandardListView<Pet> {
         );
         cardWrapper.add(petCard);
     }
-    // end::init-pet-cards[]
-
-// tag::end-class[]
 }
-// end::end-class[]
+// end::pet-cards[]

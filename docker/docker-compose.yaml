@@ -15,7 +15,8 @@ services:
       - "5432:5432"
 
   petclinic:
-    profiles: [app]
+    # you can use profiles to start applications separately from the infrastructure
+    # profiles: [app]
     build:
       context: ../jmix-petclinic-2
     depends_on:
@@ -30,7 +31,8 @@ services:
       - "8080:8080"
 
   petclinic-portal:
-    profiles: [app]
+    # you can use profiles to start applications separately from the infrastructure
+    # profiles: [app]
     build:
       context: ../jmix-petclinic-portal
     depends_on:
