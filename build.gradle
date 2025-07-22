@@ -1,1 +1,6 @@
 ext.jmixCompositeProjectRoot = true
+
+tasks.register('test') {
+    dependsOn gradle.includedBuild('jmix-petclinic-2').task(':test')
+    dependsOn gradle.includedBuild('jmix-petclinic-portal').task(':test')
+}
