@@ -75,9 +75,7 @@ dependencies {
     // Required to export log records via the OTLP protocol to the OpenTelemetry Collector.
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 
-    // Spring Boot OpenTelemetry support:
-    // Since Spring Boot 4, the OpenTelemetry auto-configuration (the OpenTelemetry bean and
-    // the OTLP log export) lives in this dedicated module; it is no longer part of the actuator.
+    // Provides the OpenTelemetry SDK bean and the OTLP log export auto-configuration.
     implementation 'org.springframework.boot:spring-boot-opentelemetry'
 
 
