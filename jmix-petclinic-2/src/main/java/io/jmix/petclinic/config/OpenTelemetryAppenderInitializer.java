@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * This instance must be set programmatically during application startup."
  * See also logback-spring.xml:
  *     <appender name="OpenTelemetry" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender" />
- * see: <a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html">Spring Boot Actuator Loggers</a>
+ * see: <a href="https://docs.spring.io/spring-boot/reference/actuator/loggers.html">Spring Boot OpenTelemetry Logging</a>
  */
 @Component
 class OpenTelemetryAppenderInitializer implements InitializingBean {

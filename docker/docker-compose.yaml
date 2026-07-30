@@ -1,3 +1,5 @@
+name: jmix-observability-logging
+
 services:
 
   postgres:
@@ -15,29 +17,35 @@ services:
       - "5432:5432"
 
   petclinic:
-    # you can use profiles to start applications separately from the infrastructure
-    # profiles: [app]
+    profiles: [app]
     build:
       context: ../jmix-petclinic-2
     depends_on:
       postgres:
         condition: service_healthy
+      lgtm:
+        condition: service_started
     environment:
       MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/petclinic
       MAIN_DATASOURCE_USERNAME: postgres
       MAIN_DATASOURCE_PASSWORD: postgres
-      MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT: http://otel-collector:4318/v1/logs
+      # tag::logging-environment[]
+      MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT: http://lgtm:4318/v1/logs
+      # end::logging-environment[]
     ports:
       - "8080:8080"
 
   petclinic-portal:
-    # you can use profiles to start applications separately from the infrastructure
-    # profiles: [app]
+    profiles: [app]
     build:
       context: ../jmix-petclinic-portal
     depends_on:
       postgres:
         condition: service_healthy
+      lgtm:
+        condition: service_started
+      petclinic:
+        condition: service_started
     environment:
       MAIN_DATASOURCE_URL: jdbc:postgresql://postgres:5432/portal
       MAIN_DATASOURCE_USERNAME: postgres
@@ -46,33 +54,19 @@ services:
       PETCLINIC_BASEURL: http://petclinic:8080
       PETCLINIC_CLIENTID: petclinic-portal
       PETCLINIC_CLIENTSECRET: UYfIcnMhoL
-      MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT: http://otel-collector:4318/v1/logs
+      MANAGEMENT_OPENTELEMETRY_LOGGING_EXPORT_OTLP_ENDPOINT: http://lgtm:4318/v1/logs
     ports:
       - "8081:8081"
 
-  # tag::otel-collector[]
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.123.0
+  # tag::lgtm[]
+  lgtm:
+    image: grafana/otel-lgtm:0.29.1
     ports:
-      - "4318:4318"
-    volumes:
-      - ./otelcol-config.yaml:/config.yaml
-    command:
-      - --config=file:/config.yaml
-  # end::otel-collector[]
-
-  # tag::loki[]
-  loki:
-    image: grafana/loki:3.5
-
-  grafana:
-    image: grafana/grafana:11.6.1
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/grafana-datasources.yaml
-    # end::loki[]
+      - "3000:3000" # Grafana
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+  # end::lgtm[]
 
 networks:
   default:
-    name: jmix-observability
+    name: jmix-observability-logging

@@ -43,10 +43,7 @@ dependencies {
     implementation 'io.jmix.restds:jmix-restds-starter'
     // end::rest-ds-dependencies[]
 
-    // tag::actuator-logging-deps[]
-    // actuator includes also micrometer core & micrometer observation
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
+    // tag::logging-dependencies[]
     // This appender sends log events to the OpenTelemetry Collector via OTLP.
     implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.1-alpha'
 
@@ -55,7 +52,7 @@ dependencies {
 
     // Provides the OpenTelemetry SDK bean and the OTLP log export auto-configuration.
     implementation 'org.springframework.boot:spring-boot-opentelemetry'
-    // end::actuator-logging-deps[]
+    // end::logging-dependencies[]
 
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

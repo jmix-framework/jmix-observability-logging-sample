@@ -55,14 +55,6 @@ dependencies {
     // end::rest-api-dependencies[]
 
     // -----------------------------------------------------------
-    // ACTUATOR
-    // -----------------------------------------------------------
-    // Spring Boot Actuator provides built-in endpoints (e.g. /actuator/health,
-    // /actuator/metrics, etc.) for monitoring and management.
-    // --> includes also micrometer core & micrometer observation
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
-    // -----------------------------------------------------------
     // LOGGING EXPORT (LOGBACK + OTEL EXPORT)
     // -----------------------------------------------------------
 
