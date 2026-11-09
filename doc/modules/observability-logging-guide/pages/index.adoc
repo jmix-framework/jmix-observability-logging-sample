@@ -396,7 +396,7 @@ docker compose -f docker/docker-compose.yaml down
 
 image::grafana-log-overview.png[Grafana Log Overview, link="_images/grafana-log-overview.png"]
 
-The screenshot above shows a unified view in Grafana’s Log UI. Each application appears as a separate service label (`jmix-petclinic` and `jmix-petclinic-portal`). As we can see both applications started logging into Loki.
+Grafana’s Log UI shows a unified view of all applications. Each application appears as a separate service label (`jmix-petclinic` and `jmix-petclinic-portal`). As we can see both applications started logging into Loki.
 
 This view highlights one of the key benefits of centralized logging: we can monitor all applications from a single place and quickly switch between them to inspect log streams, without jumping through multiple interfaces or terminals.
 
@@ -411,7 +411,7 @@ image::grafana-log-list-petclinic-portal.png[Grafana Log List Petclinic Portal, 
 
 After getting an overview of all logs per application, we can drill down into the individual log entries to explore the structured data we’ve configured.
 
-The screenshot below shows the details of a specific log line emitted by the `jmix-petclinic-portal` application:
+The details of a log line emitted by the `jmix-petclinic-portal` application look like this:
 
 image::grafana-log-detail-petclinic-portal.png[Grafana Log Entry Details, link="_images/grafana-log-detail-petclinic-portal.png"]
 
